@@ -73,6 +73,34 @@
 			cursor: default !important;
 		}
 
+        svg {
+			fill: currentColor;
+        }
+
+        /* Submit floating icon animation */
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -150%) scale(1.5);
+            }
+        }
+
+        .floating-icon {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            z-index: 1000;
+            width: calc(50% * min(100vw, 100vh));
+            height: calc(50% * min(100vw, 100vh));
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            color: var(--water-blue);
+        }
+
         /* Layout */
         .app {
             height: 100%;
@@ -304,6 +332,16 @@
             color: var(--water-blue);
             font-size: 17px;
         }
+        .preset-button-current, button.preset-button.preset-button-current.hover {
+            background: var(--water-blue);
+            color: #fff;
+        }
+        @media screen and (hover: hover) and (pointer: fine) {
+            button.preset-button.preset-button-current:hover {
+                background: var(--water-blue);
+                color: #fff;
+            }
+        }
 
         .input-numpad {
             display: grid;
@@ -350,12 +388,16 @@
 			color: var(--water-blue);
 			outline: solid 1px var(--water-blue);
 		}
-		.submit-button.hover {
+        .submit-button:disabled {
+            background: #fff;
+            color: #999;
+        }
+		.submit-button:not(:disabled).hover {
 			color: var(--water-blue);
 			outline: solid 1px var(--water-blue);
 		}
         @media screen and (hover: hover) and (pointer: fine) {
-            .submit-button:hover {
+            .submit-button:not(:disabled):hover {
                 color: var(--water-blue);
                 outline: solid 1px var(--water-blue);
                 cursor: pointer;
@@ -364,7 +406,6 @@
 		.submit-button svg {
 			width: 16px;
 			height: 16px;
-			fill: currentColor;
 		}
 		.submit-button#submitFilled svg {
 			margin-right: 4px;
@@ -750,7 +791,7 @@
                     const button = document.createElement('button');
                     button.className = 'preset-button';
                     button.textContent = `${CONFIG.formatAmount(preset)}ℓ`;
-                    button.dataset.value = preset;
+                    button.dataset.value = CONFIG.formatAmount(preset);
                     button.addEventListener('click', () => {
                         this.currentAmount = parseFloat(button.dataset.value);
                         this.cursorIndex = CONFIG.formatAmount(this.currentAmount).length;
@@ -918,6 +959,10 @@
                 const maxLength = hasDecimal ? 4 : 3;
                 const isAtMax = this.cursorIndex >= maxLength;
 
+                document.querySelectorAll('.preset-button').forEach(button => {
+                    button.classList.toggle('preset-button-current', button.dataset.value === formattedFull);
+                });
+
 				document.querySelector('.amount-display-typed').textContent = formattedFull.slice(0, this.cursorIndex);
                 document.querySelector('.amount-display-remaining').textContent = formattedFull.slice(this.cursorIndex);
 				document.querySelector('.amount-display-unit').classList.toggle('grey', this.cursorIndex === 0);
@@ -934,6 +979,10 @@
 					if (value === '←') {
 						button.disabled = this.cursorIndex === 0;
 					}
+                });
+
+                document.querySelectorAll('.submit-button').forEach(button => {
+                    button.disabled = this.currentAmount === 0;
                 });
             }
             
@@ -1036,6 +1085,24 @@
                     this.updateAmountDisplay();
 					this.updateUI();
                 }
+
+                // Show floating icon
+                const floatingIcon = document.createElement('div');
+                floatingIcon.className = 'floating-icon';
+                const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                icon.setAttribute('width', '100%');
+                icon.setAttribute('height', '100%');
+                icon.setAttribute('viewBox', '0 0 24 24');
+                const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+                use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', type === 'filled' ? '#icon-filled' : '#icon-drunk');
+                icon.appendChild(use);
+                floatingIcon.appendChild(icon);
+                document.body.appendChild(floatingIcon);
+
+                // Remove floating icon after animation
+                setTimeout(() => {
+                    // floatingIcon.remove();
+                }, 1000);
             }
 
             handleNumpadInput(value) {
