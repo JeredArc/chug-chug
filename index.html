@@ -612,8 +612,8 @@
                 this.selectedEntry = null;
                 this.entryDate = new Date();
                 this.entryDateIsSet = false;
-                this.currentAmount = 0;
-                this.cursorIndex = 0;
+                this.currentAmount = this.getLastAmount();
+                this.cursorIndex = this.currentAmount ? CONFIG.formatAmount(this.currentAmount).length : 0;
                 
                 // Load and cleanup data
                 this.cleanup();
@@ -654,6 +654,14 @@
                 }, delay);
             }
             
+            getLastAmount() {
+                return parseFloat(localStorage.getItem('water_last_amount')) || 0;
+            }
+
+            saveLastAmount(amount) {
+                localStorage.setItem('water_last_amount', CONFIG.formatAmount(amount));
+            }
+
             // Data Storage
             getStorageKey(date) {
                 return `water_${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}`;
@@ -1072,7 +1080,9 @@
                 if (isNaN(amount) || amount <= 0 || amount > CONFIG.MAX_AMOUNT) {
                     return;
                 }
-                
+
+                this.saveLastAmount(amount);
+
                 if (this.selectedEntry) {
 					this.deleteEntry(this.selectedEntry.date, this.selectedEntry.index);
                     this.addEntry(this.entryDate, amount, type);
@@ -1115,11 +1125,13 @@
                     if (this.cursorIndex > 0) {
                         this.currentAmount = parseFloat(formattedFull.slice(0, this.cursorIndex - 1)) || 0;
                         this.cursorIndex--;
+                        if(this.cursorIndex === 0) this.saveLastAmount(0);
                     }
                 } else if (value === '.' && isAtMax) {
                     // Clear when "C" is pressed
                     this.currentAmount = 0;
                     this.cursorIndex = 0;
+                    this.saveLastAmount(0);
                 } else if (value === '.') {
 					if (!formattedFull.slice(0, this.cursorIndex).includes('.')) {
                         this.cursorIndex = formattedFull.indexOf('.') + 1;
