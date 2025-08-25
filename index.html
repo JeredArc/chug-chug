@@ -204,6 +204,10 @@
             -webkit-overflow-scrolling: touch;
             padding: 2px 0;
             min-height: 24px;
+            direction: rtl;
+        }
+        .day-entries > * {
+            direction: ltr;
         }
 
         .day-entries::-webkit-scrollbar {
@@ -243,6 +247,10 @@
 
         .entry-amount {
             font-size: 14px;
+        }
+
+        .day-sum {
+            min-width: 40px;
         }
 
         .day-sum-count {
@@ -883,7 +891,7 @@
                 entriesDiv.className = 'day-entries';
                 
                 const entries = this.getDayEntries(date);
-                entries.forEach(entry => {
+                entries.reverse().forEach(entry => {  // using rtl order for right-alignment and scroll, so reverse to have newest entries at the end still
                     const entryDiv = this.createEntryElement(entry);
                     entriesDiv.appendChild(entryDiv);
                 });
@@ -904,11 +912,6 @@
                 dayDiv.appendChild(dateDiv);
                 dayDiv.appendChild(entriesDiv);
                 dayDiv.appendChild(sumDiv);
-                
-                // Scroll to the end
-                setTimeout(() => {
-                    entriesDiv.scrollLeft = entriesDiv.scrollWidth;
-                }, 0);
                 
                 return dayDiv;
             }
