@@ -817,6 +817,7 @@
                     if (this.selectedEntry) {
                         this.deleteEntry(this.selectedEntry.date, this.selectedEntry.index);
                         this.exitEditMode();
+                        this.showFloatingIcon('#icon-delete');
                     }
                 });
                 
@@ -1074,6 +1075,26 @@
                 this.updateUI();
             }
             
+            showFloatingIcon(iconId) {
+                // Show floating icon
+                const floatingIcon = document.createElement('div');
+                floatingIcon.className = 'floating-icon';
+                const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                icon.setAttribute('width', '100%');
+                icon.setAttribute('height', '100%');
+                icon.setAttribute('viewBox', '0 0 24 24');
+                const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+                use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', iconId);
+                icon.appendChild(use);
+                floatingIcon.appendChild(icon);
+                document.body.appendChild(floatingIcon);
+
+                // Remove floating icon after animation
+                setTimeout(() => {
+                    floatingIcon.remove();
+                }, 1000);
+            }
+
             handleSubmit(type) {
                 let amount = parseFloat(this.currentAmount);
                 
@@ -1096,23 +1117,7 @@
 					this.updateUI();
                 }
 
-                // Show floating icon
-                const floatingIcon = document.createElement('div');
-                floatingIcon.className = 'floating-icon';
-                const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                icon.setAttribute('width', '100%');
-                icon.setAttribute('height', '100%');
-                icon.setAttribute('viewBox', '0 0 24 24');
-                const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-                use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', type === 'filled' ? '#icon-filled' : '#icon-drunk');
-                icon.appendChild(use);
-                floatingIcon.appendChild(icon);
-                document.body.appendChild(floatingIcon);
-
-                // Remove floating icon after animation
-                setTimeout(() => {
-                    // floatingIcon.remove();
-                }, 1000);
+                this.showFloatingIcon(type === 'filled' ? '#icon-filled' : '#icon-drunk');
             }
 
             handleNumpadInput(value) {
