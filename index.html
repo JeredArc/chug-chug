@@ -1,71 +1,71 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Chug! Chug!">
-    <link rel="apple-touch-icon" href="appicon.png">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>Chug! Chug!</title>
-    <style>
-        @media screen and (orientation: landscape) and (hover: none) and (pointer: coarse) {
-            html {
-                transform: rotate(-90deg);
-                transform-origin: left top;
-                width: 100vh !important;
-                height: 100vw !important;
-                position: absolute;
-                top: 100%;
-                left: 0;
-            }
-        }
+	<meta name="apple-mobile-web-app-title" content="Chug! Chug!">
+	<link rel="apple-touch-icon" href="appicon.png">
+	<link rel="icon" type="image/svg+xml" href="appicon.svg">
+	<title>Chug! Chug!</title>
+	<style>
+		@media screen and (orientation: landscape) and (hover: none) and (pointer: coarse) {
+			html {
+				transform: rotate(-90deg);
+				transform-origin: left top;
+				width: 100vh !important;
+				height: 100vw !important;
+				position: absolute;
+				top: 100%;
+				left: 0;
+			}
+		}
 		
 		/* Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			-webkit-tap-highlight-color: transparent;
+			user-select: none;
+			-webkit-user-select: none;
+		}
 
-        /* Variables */
-        :root {
-            --water-blue: #007AFF;
+		/* Variables */
+		:root {
+			--water-blue: #007AFF;
 			--water-blue-light: #878aa7;
-        }
+		}
 
-        /* Base */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background: #fff;
-        }
+		/* Base */
+		html, body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background: #fff;
+		}
 		body {
 			min-height: 1px;
 		}
 		html, body, input, button, select, textarea {
 			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 			font-size: 16px;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
 		}
 
 		button:not(.disabled):not(:disabled).hover,
 		.entry.hover {
 			background: color-mix(in srgb, var(--water-blue-light), white 90%);
-        }
-        @media screen and (hover: hover) and (pointer: fine) {
+		}
+		@media screen and (hover: hover) and (pointer: fine) {
 			button:not(.disabled):not(:disabled):hover,
 			.entry:hover {
 				background: color-mix(in srgb, var(--water-blue-light), white 90%);
-                cursor: pointer;
+				cursor: pointer;
 			}
 		}
 
@@ -73,344 +73,347 @@
 			cursor: default !important;
 		}
 
-        svg {
+		svg {
 			fill: currentColor;
-        }
+		}
 
-        /* Submit floating icon animation */
-        @keyframes floatUp {
-            0% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(-50%, -150%) scale(1.5);
-            }
-        }
+		/* Submit floating icon animation */
+		@keyframes floatUp {
+			0% {
+				opacity: 1;
+				transform: translate(-50%, -50%) scale(1);
+			}
+			100% {
+				opacity: 0;
+				transform: translate(-50%, -150%) scale(1.5);
+			}
+		}
 
-        .floating-icon {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            z-index: 1000;
-            width: calc(50% * min(100vw, 100vh));
-            height: calc(50% * min(100vw, 100vh));
-            pointer-events: none;
-            animation: floatUp 1s ease-out forwards;
-            color: var(--water-blue);
-        }
+		.floating-icon {
+			position: fixed;
+			left: 50%;
+			top: 50%;
+			z-index: 1000;
+			width: calc(50% * min(100vw, 100vh));
+			height: calc(50% * min(100vw, 100vh));
+			pointer-events: none;
+			animation: floatUp 1s ease-out forwards;
+			color: var(--water-blue);
+		}
 
-        /* Layout */
-        .app {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+		/* Layout */
+		.app {
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+		}
 
-        .header {
-            flex: 0 0 auto;
-            padding-top: env(safe-area-inset-top);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            z-index: 2;
-        }
+		.header {
+			flex: 0 0 auto;
+			padding-top: env(safe-area-inset-top);
+			background: rgba(255, 255, 255, 0.85);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+			border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+			z-index: 2;
+		}
 
-        .header-content {
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-        }
+		.header-content {
+			height: 44px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0 16px;
+		}
 
-        .nav-button {
-            width: 36px;
-            height: 36px;
+		.nav-button {
+			width: 36px;
+			height: 36px;
 			margin: 4px;
-            background: color-mix(in srgb, var(--water-blue-light), white 94%);
-            color: var(--water-blue);
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+			background: color-mix(in srgb, var(--water-blue-light), white 94%);
+			color: var(--water-blue);
+			font-size: 24px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			border-radius: 12px;
 			border: solid 1px var(--water-blue-light);
-        }
+		}
 
-        .nav-button:disabled {
-            opacity: 0.3;
-        }
+		.nav-button:disabled {
+			opacity: 0.3;
+		}
 
-        .week-display {
-            height: 36px;
+		.week-display {
+			height: 36px;
 			margin: 4px;
 			padding: 0 16px;
 			border: none;
 			font-size: 18px;
-            font-weight: bold;
+			font-weight: bold;
 			border-radius: 12px;
 			background: none;
 			color: var(--water-blue); /* disabled means the week is the current week, so use blue text */
 		}
 		.week-display:not(.disabled) { /* not disabled if the week is not the current week, then it's black text */
-            background: color-mix(in srgb, var(--water-blue-light), white 94%);
+			background: color-mix(in srgb, var(--water-blue-light), white 94%);
 			border: solid 1px var(--water-blue-light);
 			cursor: pointer;
 			color: black;
 		}
 
-        /* Days list */
-        .days {
-            flex: 1 1 0;
-            overflow-y: auto;
-            padding: 0 16px;
-            -webkit-overflow-scrolling: touch;
-            display: flex;
-            flex-direction: column;
-        }
+		/* Days list */
+		.days {
+			flex: 1 1 0;
+			overflow-y: auto;
+			padding: 0 16px;
+			-webkit-overflow-scrolling: touch;
+			display: flex;
+			flex-direction: column;
+		}
 
-        .day {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            height: calc((100% - 6px) / 7); /* total space minus borders divided by 7 */
-            min-height: 44px;
-            padding: 2px 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            gap: 8px;
-        }
+		.day {
+			display: grid;
+			grid-template-columns: auto 1fr auto;
+			align-items: center;
+			height: calc((100% - 6px) / 7); /* total space minus borders divided by 7 */
+			min-height: 44px;
+			padding: 2px 0;
+			border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+			gap: 8px;
+		}
 
 		.day.today .day-date, .day.today .day-sum {
 			color: var(--water-blue);
 			font-weight: bold;
 		}
 
-        .day-date {
-            font-size: 15px;
-            white-space: nowrap;
+		.day-date {
+			font-size: 15px;
+			white-space: nowrap;
 			width: 92px;
 			text-align: right;
-        }
+		}
 
-        .day-entries {
-            display: flex;
-            flex-direction: row;
-            gap: 6px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 2px 0;
-            min-height: 24px;
-            direction: rtl;
-        }
-        .day-entries > * {
-            direction: ltr;
-        }
+		.day-entries {
+			display: flex;
+			flex-direction: row;
+			gap: 6px;
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+			padding: 2px 0;
+			min-height: 24px;
+			direction: rtl;
+		}
+		.day-entries > * {
+			direction: ltr;
+		}
 
-        .day-entries::-webkit-scrollbar {
-            display: none; /* Hide scrollbar on iOS */
-        }
+		.day-entries::-webkit-scrollbar {
+			display: none; /* Hide scrollbar on iOS */
+		}
 
-        .entry {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1px;
-            flex: 0 0 auto;
-            padding: 2px 4px;
+		.entry {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1px;
+			flex: 0 0 auto;
+			padding: 2px 4px;
 			border-radius: 12px;
 			border: solid 1px var(--water-blue-light);
-        }
+		}
 		.entry.selected {
 			border-color: var(--water-blue);
 			color: var(--water-blue);
 			font-weight: bold;
 		}
 
-        .entry-time-row {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: var(--water-blue-light);
-            font-size: 12px;
-			font-weight: normal;
-        }
-
-        .entry-icon {
-            width: 12px;
-            height: 12px;
-            fill: currentColor;
-        }
-
-        .entry-amount {
-            font-size: 14px;
-        }
-
-        .day-sum {
-            min-width: 40px;
-        }
-
-        .day-sum-count {
-            text-align: right;
-            font-size: 12px;
+		.entry-time-row {
+			display: flex;
+			align-items: center;
+			gap: 4px;
 			color: var(--water-blue-light);
-            white-space: nowrap;
-        }
-        .day-sum-liters {
-            text-align: right;
-            font-size: 14px;
-            white-space: nowrap;
-        }
+			font-size: 12px;
+			font-weight: normal;
+		}
 
-        /* Input area */
-        .input-wrapper {
-            flex: 0 0 auto;
-            padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
-        }
+		.entry-icon {
+			width: 12px;
+			height: 12px;
+			fill: currentColor;
+		}
 
-        .input {
-            background: color-mix(in srgb, var(--water-blue-light), white 86%);
-            padding: 0 16px 20px 16px;
-            border-radius: 14px;
-        }
+		.entry-amount {
+			font-size: 14px;
+		}
 
-        /* Add styles for the edit header */
-        .input-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 18px;
-            font-weight: bold;
+		.day-sum {
+			min-width: 40px;
+		}
+
+		.day-sum-count {
+			text-align: right;
+			font-size: 12px;
+			color: var(--water-blue-light);
+			white-space: nowrap;
+		}
+		.day-sum-liters {
+			text-align: right;
+			font-size: 14px;
+			white-space: nowrap;
+		}
+
+		/* Input area */
+		.input-wrapper {
+			flex: 0 0 auto;
+			padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+		}
+
+		.input {
+			background: color-mix(in srgb, var(--water-blue-light), white 86%);
+			padding: 0 16px 20px 16px;
+			border-radius: 14px;
+		}
+
+		/* Add styles for the edit header */
+		.input-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			font-size: 18px;
+			font-weight: bold;
 			height: 48px;
-        }
+		}
 
-        .edit-actions {
-            display: inline-flex;
-            gap: 8px;
-        }
+		.edit-actions {
+			display: inline-flex;
+			gap: 8px;
+		}
 
 		.input.mode-edit .input-header .caption-add, .input:not(.mode-edit) .input-header .caption-edit, .input:not(.mode-edit) .input-header .edit-actions {
 			display: none;
 		}
 
-        .action-button {
-            border: none;
-            background: none;
-            padding: 4px 8px;
-            color: var(--water-blue);
-            cursor: pointer;
-            border-radius: 6px;
+		.action-button {
+			border: none;
+			background: none;
+			padding: 4px 8px;
+			color: var(--water-blue);
+			cursor: pointer;
+			border-radius: 6px;
 			height: 40px;
-        }
+		}
 
-        .action-button.hover {
-            background: rgba(0, 122, 255, 0.1);
-        }
-        @media screen and (hover: hover) and (pointer: fine) {
-            .action-button:hover {
-                background: rgba(0, 122, 255, 0.1);
-                cursor: pointer;
-            }
-        }
+		.action-button.hover {
+			background: rgba(0, 122, 255, 0.1);
+		}
+		@media screen and (hover: hover) and (pointer: fine) {
+			.action-button:hover {
+				background: rgba(0, 122, 255, 0.1);
+				cursor: pointer;
+			}
+		}
 
-        .input-datetime {
-            width: 100%;
-            padding: 12px 16px;
-            border: none;
-            border-radius: 10px;
-            background: #fff;
-            margin-bottom: 16px;
-        }
+		.input-datetime {
+			width: 100%;
+			padding: 12px 16px;
+			border: none;
+			border-radius: 10px;
+			background: #fff;
+			margin-bottom: 16px;
+		}
 
-        .input-presets {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
+		.input-presets {
+			display: flex;
+			gap: 8px;
+			margin-bottom: 12px;
+		}
 
-        .preset-button {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid var(--water-blue);
-            border-radius: 8px;
-            background: #fff;
-            color: var(--water-blue);
-            font-size: 17px;
-        }
-        .preset-button-current, button.preset-button.preset-button-current.hover {
-            background: var(--water-blue);
-            color: #fff;
-        }
-        @media screen and (hover: hover) and (pointer: fine) {
-            button.preset-button.preset-button-current:hover {
-                background: var(--water-blue);
-                color: #fff;
-            }
-        }
+		.preset-button {
+			flex: 1;
+			padding: 8px;
+			border: 1px solid var(--water-blue);
+			border-radius: 8px;
+			background: #fff;
+			color: var(--water-blue);
+			font-size: 17px;
+			writing-mode: vertical-rl;
+			transform: rotate(180deg);
+			text-orientation: sideways;
+		}
+		.preset-button-current, button.preset-button.preset-button-current.hover {
+			background: var(--water-blue);
+			color: #fff;
+		}
+		@media screen and (hover: hover) and (pointer: fine) {
+			button.preset-button.preset-button-current:hover {
+				background: var(--water-blue);
+				color: #fff;
+			}
+		}
 
-        .input-numpad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1px;
-            background: rgba(118, 118, 128, 0.12);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
+		.input-numpad {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 1px;
+			background: rgba(118, 118, 128, 0.12);
+			border-radius: 10px;
+			overflow: hidden;
+			margin-bottom: 12px;
+		}
 
-        .num-button {
-            height: 40px;
-            border: none;
-            background: #fff;
-            font-size: 17px;
-            color: var(--water-blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+		.num-button {
+			height: 40px;
+			border: none;
+			background: #fff;
+			font-size: 17px;
+			color: var(--water-blue);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 		.num-button:disabled {
 			color: #999;
 		}
 
-        .input-submit {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 22px;
-            align-items: center;
-        }
+		.input-submit {
+			display: grid;
+			grid-template-columns: 1fr auto 1fr;
+			gap: 22px;
+			align-items: center;
+		}
 
-        .submit-button {
-            padding: 10px 4px;
-            border: none;
-            border-radius: 8px;
+		.submit-button {
+			padding: 10px 4px;
+			border: none;
+			border-radius: 8px;
 			background: var(--water-blue);
 			color: #fff;
-            font-size: 17px;
-            font-weight: 500;
-        }
+			font-size: 17px;
+			font-weight: 500;
+		}
 		.input.mode-edit .submit-button:not(.selected) {
 			background: #fff;
 			color: var(--water-blue);
 			outline: solid 1px var(--water-blue);
 		}
-        .submit-button:disabled {
-            background: #fff;
-            color: #999;
-        }
+		.submit-button:disabled {
+			background: #fff;
+			color: #999;
+		}
 		.submit-button:not(:disabled).hover {
 			color: var(--water-blue);
 			outline: solid 1px var(--water-blue);
 		}
-        @media screen and (hover: hover) and (pointer: fine) {
-            .submit-button:not(:disabled):hover {
-                color: var(--water-blue);
-                outline: solid 1px var(--water-blue);
-                cursor: pointer;
-            }
-        }
+		@media screen and (hover: hover) and (pointer: fine) {
+			.submit-button:not(:disabled):hover {
+				color: var(--water-blue);
+				outline: solid 1px var(--water-blue);
+				cursor: pointer;
+			}
+		}
 		.submit-button svg {
 			width: 16px;
 			height: 16px;
@@ -422,262 +425,262 @@
 			margin-left: 4px;
 		}
 
-        .amount-display {
-            font-weight: bold;
-            width: 50px;
-            padding-right: 5px;
-            text-align: right;
-        }
-        .amount-display-typed {
-            color: #000;
-        }
+		.amount-display {
+			font-weight: bold;
+			width: 50px;
+			padding-right: 5px;
+			text-align: right;
+		}
+		.amount-display-typed {
+			color: #000;
+		}
 		.amount-display-unit {
 			color: #000;
 			padding-left: 2px;
 		}
-        .amount-display-remaining, .amount-display-unit.grey {
-            color: #999;
-        }
-    </style>
+		.amount-display-remaining, .amount-display-unit.grey {
+			color: #999;
+		}
+	</style>
 </head>
 <body>
-    <!-- SVG Icon Definitions -->
-    <svg style="display: none;">
-        <!-- Navigation Icons -->
-        <symbol id="icon-arrow-left" viewBox="0 0 24 24">
-            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-        </symbol>
-        <symbol id="icon-arrow-right" viewBox="0 0 24 24">
-            <path d="M8.59 7.41L10 6l6 6-6 6-1.41-1.41L13.17 12z"/>
-        </symbol>
-        <!-- Entry Type Icons -->
-        <symbol id="icon-filled" viewBox="0 0 24 24">
+	<!-- SVG Icon Definitions -->
+	<svg style="display: none;">
+		<!-- Navigation Icons -->
+		<symbol id="icon-arrow-left" viewBox="0 0 24 24">
+			<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+		</symbol>
+		<symbol id="icon-arrow-right" viewBox="0 0 24 24">
+			<path d="M8.59 7.41L10 6l6 6-6 6-1.41-1.41L13.17 12z"/>
+		</symbol>
+		<!-- Entry Type Icons -->
+		<symbol id="icon-filled" viewBox="0 0 24 24">
 			<path d="M10.137,13.594L10.137,6.008C10.137,3.066 12.531,0.672 15.476,0.672C18.422,0.672 20.812,3.066 20.812,6.008L20.812,8.398L18.707,8.398L18.707,6.008C18.707,4.227 17.258,2.777 15.477,2.777C13.695,2.777 12.242,4.227 12.242,6.008L12.242,13.594L10.137,13.594Z" style="fill-rule:nonzero;"/>
 			<path d="M6.039,17.086L9.117,17.086C9.488,17.086 9.832,17.226 10.09,17.488C10.351,17.75 10.496,18.094 10.496,18.461C10.496,19.219 9.879,19.836 9.117,19.836L3.187,19.836L3.187,17.086L5.258,17.086L5.258,14.906C4.691,14.742 4.273,14.215 4.273,13.594L4.273,9.941C4.273,9.184 4.89,8.57 5.648,8.57C6.402,8.57 7.019,9.184 7.019,9.941L7.019,13.594C7.019,14.211 6.605,14.738 6.039,14.906L6.039,17.086Z" style="fill-rule:nonzero;"/>
 			<path d="M22.562,23.328L1.438,23.328C1.223,23.328 1.047,23.152 1.047,22.937C1.047,22.723 1.223,22.547 1.438,22.547L9.117,22.547L9.117,20.617C10.309,20.617 11.277,19.648 11.277,18.461C11.277,17.887 11.051,17.344 10.645,16.934C10.238,16.527 9.695,16.305 9.117,16.305L9.117,14.375L13.168,14.375L13.168,22.547L22.562,22.547C22.777,22.547 22.953,22.723 22.953,22.938C22.953,23.152 22.777,23.328 22.562,23.328L22.562,23.328Z" style="fill-rule:nonzero;"/>
 			<path d="M19.61,10.241C19.61,10.241 21.579,12.161 21.579,13.519C21.579,14.606 20.698,15.488 19.61,15.488C18.523,15.488 17.641,14.607 17.641,13.519C17.641,12.155 19.61,10.241 19.61,10.241Z" style="fill-rule:nonzero;"/>
 		</symbol>
-        <symbol id="icon-drunk" viewBox="0 0 24 24">
+		<symbol id="icon-drunk" viewBox="0 0 24 24">
 			<path d="M16.39,23.328L7.61,23.328C7.458,23.328 7.32,23.237 7.261,23.096C7.249,23.067 6.955,22.364 6.563,21.182C6.202,20.094 5.687,18.38 5.284,16.39C4.831,14.15 4.61,12.023 4.627,10.07C4.648,7.614 5.049,5.424 5.819,3.562C5.877,3.42 6.015,3.328 6.168,3.328L17.832,3.328C17.985,3.328 18.123,3.42 18.181,3.562C18.951,5.424 19.351,7.614 19.373,10.07C19.39,12.023 19.169,14.15 18.716,16.39C18.313,18.38 17.798,20.094 17.437,21.182C17.045,22.364 16.751,23.067 16.739,23.096C16.679,23.237 16.542,23.328 16.39,23.328ZM15.514,21.844C15.723,21.844 15.892,21.675 15.892,21.466C15.892,21.257 15.723,21.088 15.514,21.088L8.486,21.088C8.277,21.088 8.108,21.257 8.108,21.466C8.108,21.675 8.277,21.844 8.486,21.844L15.514,21.844Z"/>
 		</symbol>
-        <!-- Action Icons -->
-        <symbol id="icon-delete" viewBox="0 0 24 24">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-        </symbol>
-        <symbol id="icon-cancel" viewBox="0 0 24 24">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-        </symbol>
-    </svg>
+		<!-- Action Icons -->
+		<symbol id="icon-delete" viewBox="0 0 24 24">
+			<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+		</symbol>
+		<symbol id="icon-cancel" viewBox="0 0 24 24">
+			<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+		</symbol>
+	</svg>
 
-    <div class="app">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <button class="nav-button" id="prevWeek"><svg width="24" height="24"><use href="#icon-arrow-left"></use></svg></button>
-                <button class="week-display" id="currentWeek"></button>
-                <button class="nav-button" id="nextWeek" disabled><svg width="24" height="24"><use href="#icon-arrow-right"></use></svg></button>
-            </div>
-        </header>
+	<div class="app">
+		<!-- Header -->
+		<header class="header">
+			<div class="header-content">
+				<button class="nav-button" id="prevWeek"><svg width="24" height="24"><use href="#icon-arrow-left"></use></svg></button>
+				<button class="week-display" id="currentWeek"></button>
+				<button class="nav-button" id="nextWeek" disabled><svg width="24" height="24"><use href="#icon-arrow-right"></use></svg></button>
+			</div>
+		</header>
 
-        <!-- Days list -->
-        <div class="days">
-            <!-- Days will be added here dynamically -->
-        </div>
+		<!-- Days list -->
+		<div class="days">
+			<!-- Days will be added here dynamically -->
+		</div>
 
-        <!-- Input area -->
-        <div class="input-wrapper">
-            <div class="input">
-                <div class="input-header">
-                    <span class="caption-add">Eintrag hinzufügen</span>
-                    <span class="caption-edit">Bearbeiten</span>
-                    <span class="edit-actions edit-actions-hidden">
-                        <button class="action-button" id="deleteEntry"><svg width="24" height="24"><use href="#icon-delete"></use></svg></button>
-                        <button class="action-button" id="cancelEdit"><svg width="24" height="24"><use href="#icon-cancel"></use></svg></button>
-                    </span>
-                </div>
-                <input type="text" class="input-datetime" id="datetime" placeholder="" value="">
-                <div class="input-presets">
-                </div>
-                <div class="input-numpad">
-                    <button class="num-button" data-value="1">1</button>
-                    <button class="num-button" data-value="2">2</button>
-                    <button class="num-button" data-value="3">3</button>
-                    <button class="num-button" data-value="4">4</button>
-                    <button class="num-button" data-value="5">5</button>
-                    <button class="num-button" data-value="6">6</button>
-                    <button class="num-button" data-value="7">7</button>
-                    <button class="num-button" data-value="8">8</button>
-                    <button class="num-button" data-value="9">9</button>
-                    <button class="num-button" data-value=".">.</button>
-                    <button class="num-button" data-value="0">0</button>
-                    <button class="num-button" data-value="←">←</button>
-                </div>
-                <div class="input-submit">
-                    <button class="submit-button" id="submitFilled"><svg width="24" height="24"><use href="#icon-filled"></use></svg> eingefüllt</button>
-                    <div class="amount-display">
-                        <span class="amount-display-typed"></span><span class="amount-display-remaining"></span><span class="amount-display-unit">ℓ</span>
-                    </div>
-                    <button class="submit-button" id="submitDrunk">getrunken <svg width="24" height="24"><use href="#icon-drunk"></use></svg></button>
-                </div>
-            </div>
-        </div>
-    </div>
+		<!-- Input area -->
+		<div class="input-wrapper">
+			<div class="input">
+				<div class="input-header">
+					<span class="caption-add">Eintrag hinzufügen</span>
+					<span class="caption-edit">Bearbeiten</span>
+					<span class="edit-actions edit-actions-hidden">
+						<button class="action-button" id="deleteEntry"><svg width="24" height="24"><use href="#icon-delete"></use></svg></button>
+						<button class="action-button" id="cancelEdit"><svg width="24" height="24"><use href="#icon-cancel"></use></svg></button>
+					</span>
+				</div>
+				<input type="text" class="input-datetime" id="datetime" placeholder="" value="">
+				<div class="input-presets">
+				</div>
+				<div class="input-numpad">
+					<button class="num-button" data-value="1">1</button>
+					<button class="num-button" data-value="2">2</button>
+					<button class="num-button" data-value="3">3</button>
+					<button class="num-button" data-value="4">4</button>
+					<button class="num-button" data-value="5">5</button>
+					<button class="num-button" data-value="6">6</button>
+					<button class="num-button" data-value="7">7</button>
+					<button class="num-button" data-value="8">8</button>
+					<button class="num-button" data-value="9">9</button>
+					<button class="num-button" data-value=".">.</button>
+					<button class="num-button" data-value="0">0</button>
+					<button class="num-button" data-value="←">←</button>
+				</div>
+				<div class="input-submit">
+					<button class="submit-button" id="submitFilled"><svg width="24" height="24"><use href="#icon-filled"></use></svg> eingefüllt</button>
+					<div class="amount-display">
+						<span class="amount-display-typed"></span><span class="amount-display-remaining"></span><span class="amount-display-unit">ℓ</span>
+					</div>
+					<button class="submit-button" id="submitDrunk">getrunken <svg width="24" height="24"><use href="#icon-drunk"></use></svg></button>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <script>
-        // App Constants
-        window.CONFIG = {
-            // Data Management
-            MAX_AGE_DAYS: 100,
-            
-            // Amount Presets (in liters)
-            PRESETS: [0.25, 0.35, 0.42, 0.50],
-            
-            // Amount Constraints
-            MAX_AMOUNT: 999,
+	<script>
+		// App Constants
+		window.CONFIG = {
+			// Data Management
+			MAX_AGE_DAYS: 100,
+			
+			// Amount Presets (in liters)
+			PRESETS: [0.25, 0.35, 0.42, 0.50, 0.60, 1.20],
+			
+			// Amount Constraints
+			MAX_AMOUNT: 999,
 
 			DAY_START_HOUR: 4,
-            
-            // Amount Formatting
-            formatAmount: (amount) => {
+			
+			// Amount Formatting
+			formatAmount: (amount) => {
 				if (isNaN(amount)) amount = 0;
-                // Convert to number and limit to 3 digits total
-                amount = Math.min(Math.max(0, Number(amount)), CONFIG.MAX_AMOUNT);
-                
-                if (amount >= 100) {
-                    // No decimals for amounts >= 100
-                    return amount.toFixed(0);
-                } else if (amount >= 10) {
-                    // One decimal for amounts >= 10
-                    return amount.toFixed(1);
-                } else {
-                    // Two decimals for amounts < 10
-                    return amount.toFixed(2);
-                }
-            },
-            
-            // Date Formatting
-            formatDate: (date, includeWeekday = false) => {
-                if (includeWeekday) {
-                    const weekday = date.toLocaleDateString('de-DE', { weekday: 'short' });
-                    const day = date.getDate().toString().padStart(2, '0');
-                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                    const year = date.getFullYear().toString().slice(-2);
-                    return `${weekday} ${day}.${month}.${year}`;
-                } else {
-                    return date.toLocaleDateString('de-DE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    });
-                }
-            },
-            
-            formatTime: (date) => {
-                return date.toLocaleTimeString('de-DE', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
-            },
-            
-            // Week Calculation
-            getWeekNumber: (date) => {
-                const d = new Date(date);
+				// Convert to number and limit to 3 digits total
+				amount = Math.min(Math.max(0, Number(amount)), CONFIG.MAX_AMOUNT);
+				
+				if (amount >= 100) {
+					// No decimals for amounts >= 100
+					return amount.toFixed(0);
+				} else if (amount >= 10) {
+					// One decimal for amounts >= 10
+					return amount.toFixed(1);
+				} else {
+					// Two decimals for amounts < 10
+					return amount.toFixed(2);
+				}
+			},
+			
+			// Date Formatting
+			formatDate: (date, includeWeekday = false) => {
+				if (includeWeekday) {
+					const weekday = date.toLocaleDateString('de-DE', { weekday: 'short' });
+					const day = date.getDate().toString().padStart(2, '0');
+					const month = (date.getMonth() + 1).toString().padStart(2, '0');
+					const year = date.getFullYear().toString().slice(-2);
+					return `${weekday} ${day}.${month}.${year}`;
+				} else {
+					return date.toLocaleDateString('de-DE', {
+						day: '2-digit',
+						month: '2-digit',
+						year: 'numeric'
+					});
+				}
+			},
+			
+			formatTime: (date) => {
+				return date.toLocaleTimeString('de-DE', {
+					hour: '2-digit',
+					minute: '2-digit',
+					hour12: false
+				});
+			},
+			
+			// Week Calculation
+			getWeekNumber: (date) => {
+				const d = new Date(date);
 				d.setDate(d.getDate() + 1); /* normal week day counting starts on Monday, below implementation respects that, we however want to start on Sunday (see getWeekDates()) */
-                d.setHours(0, 0, 0, 0);
-                d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-                const week1 = new Date(d.getFullYear(), 0, 4);
-                return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-            },
+				d.setHours(0, 0, 0, 0);
+				d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+				const week1 = new Date(d.getFullYear(), 0, 4);
+				return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+			},
 
 			// Date Handling
-            getDayDate: (date) => {
-                // If it's before 4 AM, consider it part of the previous day
-                const d = new Date(date);
-                if (d.getHours() < CONFIG.DAY_START_HOUR) {
-                    d.setDate(d.getDate() - 1);
-                }
-                // Reset time to midnight for consistent comparison
-                d.setHours(0, 0, 0, 0);
-                return d;
-            },
+			getDayDate: (date) => {
+				// If it's before 4 AM, consider it part of the previous day
+				const d = new Date(date);
+				if (d.getHours() < CONFIG.DAY_START_HOUR) {
+					d.setDate(d.getDate() - 1);
+				}
+				// Reset time to midnight for consistent comparison
+				d.setHours(0, 0, 0, 0);
+				return d;
+			},
 
-            isToday: (date) => {
-                const today = CONFIG.getDayDate(new Date());
-                const dayDate = new Date(date);
-                dayDate.setHours(0, 0, 0, 0);
-                return today.getTime() === dayDate.getTime();
-            },
-        };
+			isToday: (date) => {
+				const today = CONFIG.getDayDate(new Date());
+				const dayDate = new Date(date);
+				dayDate.setHours(0, 0, 0, 0);
+				return today.getTime() === dayDate.getTime();
+			},
+		};
 
-        // We'll add more JavaScript code here
-        
-        // Data Management
-        class WaterTracker {
-            constructor() {
+		// We'll add more JavaScript code here
+		
+		// Data Management
+		class WaterTracker {
+			constructor() {
 				this.currentDate = new Date();
-                this.today = CONFIG.getDayDate(this.currentDate);
-                this.selectedEntry = null;
-                this.entryDate = new Date();
-                this.entryDateIsSet = false;
-                this.currentAmount = this.getLastAmount();
-                this.cursorIndex = this.currentAmount ? CONFIG.formatAmount(this.currentAmount).length : 0;
-                
-                // Load and cleanup data
-                this.cleanup();
-                
-                // Initialize UI
-                this.initializeUI();
-                
-                // Start time update
-                this.startTimeUpdate();
-            }
+				this.today = CONFIG.getDayDate(this.currentDate);
+				this.selectedEntry = null;
+				this.entryDate = new Date();
+				this.entryDateIsSet = false;
+				this.currentAmount = this.getLastAmount();
+				this.cursorIndex = this.currentAmount ? CONFIG.formatAmount(this.currentAmount).length : 0;
+				
+				// Load and cleanup data
+				this.cleanup();
+				
+				// Initialize UI
+				this.initializeUI();
+				
+				// Start time update
+				this.startTimeUpdate();
+			}
 
-            startTimeUpdate() {
-                const now = new Date();
-                const nextMinute = new Date(now);
-                nextMinute.setMinutes(now.getMinutes() + 1, 0, 0);
-                const delay = nextMinute - now;
+			startTimeUpdate() {
+				const now = new Date();
+				const nextMinute = new Date(now);
+				nextMinute.setMinutes(now.getMinutes() + 1, 0, 0);
+				const delay = nextMinute - now;
 
-                setTimeout(() => {
-                    // Update entry date if not manually set
-                    if (!this.entryDateIsSet) {
-                        const entryDateString = this.formatDateTime(this.entryDate);
-                        this.entryDate = new Date();
-                        const input = document.getElementById('datetime');
-                        if (!input.matches(':focus') || input.value === entryDateString) {
-                            this.updateDateTimeInput();
-                        }
-                    }
+				setTimeout(() => {
+					// Update entry date if not manually set
+					if (!this.entryDateIsSet) {
+						const entryDateString = this.formatDateTime(this.entryDate);
+						this.entryDate = new Date();
+						const input = document.getElementById('datetime');
+						if (!input.matches(':focus') || input.value === entryDateString) {
+							this.updateDateTimeInput();
+						}
+					}
 
-                    // Check if day has changed (considering 4 AM cutoff)
-                    const newToday = CONFIG.getDayDate(new Date());
-                    if (newToday.getTime() !== this.today.getTime()) {
-                        this.today = newToday;
-                        this.updateUI();
-                    }
+					// Check if day has changed (considering 4 AM cutoff)
+					const newToday = CONFIG.getDayDate(new Date());
+					if (newToday.getTime() !== this.today.getTime()) {
+						this.today = newToday;
+						this.updateUI();
+					}
 
-                    // Schedule next update
-                    this.startTimeUpdate();
-                }, delay);
-            }
-            
-            getLastAmount() {
-                return parseFloat(localStorage.getItem('water_last_amount')) || 0;
-            }
+					// Schedule next update
+					this.startTimeUpdate();
+				}, delay);
+			}
+			
+			getLastAmount() {
+				return parseFloat(localStorage.getItem('water_last_amount')) || 0;
+			}
 
-            saveLastAmount(amount) {
-                localStorage.setItem('water_last_amount', CONFIG.formatAmount(amount));
-            }
+			saveLastAmount(amount) {
+				localStorage.setItem('water_last_amount', CONFIG.formatAmount(amount));
+			}
 
-            // Data Storage
-            getStorageKey(date) {
-                return `water_${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}`;
-            }
-            
-            getEntries(date, raw=false) { // for a calendar date, not a day date (which starts at DAY_START_HOUR)
-                const key = this.getStorageKey(date);
-                const stored = localStorage.getItem(key);
+			// Data Storage
+			getStorageKey(date) {
+				return `water_${date.getFullYear()}_${date.getMonth() + 1}_${date.getDate()}`;
+			}
+			
+			getEntries(date, raw=false) { // for a calendar date, not a day date (which starts at DAY_START_HOUR)
+				const key = this.getStorageKey(date);
+				const stored = localStorage.getItem(key);
 				try {
 					let result = stored ? JSON.parse(stored) : [];
 					if (raw) {
@@ -693,52 +696,52 @@
 					console.error('Error parsing stored data:', e);
 					return [];
 				}
-            }
-            
-            saveEntries(date, entries) {
+			}
+			
+			saveEntries(date, entries) {
 				const json = JSON.stringify(entries);
-                const key = this.getStorageKey(date);
+				const key = this.getStorageKey(date);
 				if(json === '[]') {
 					localStorage.removeItem(key);
 				} else {
 					localStorage.setItem(key, json);
 				}
-            }
-            
-            cleanup() {
-                const cutoff = new Date();
-                cutoff.setDate(cutoff.getDate() - CONFIG.MAX_AGE_DAYS);
-                
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('water_')) {
-                        const [_, year, month, day] = key.split('_').map(Number);
-                        const date = new Date(year, month - 1, day);
-                        if (date < cutoff) {
-                            localStorage.removeItem(key);
-                        }
-                    }
-                }
-            }
-            
-            // Entry Management, stored by calendar date, not day date
-            addEntry(date, amount, type) {
-                const entries = this.getEntries(date, true);
-                entries.push({
-                    time: date.toISOString(),
-                    amount: Number(amount),
-                    type // 'filled' or 'drunk'
-                });
+			}
+			
+			cleanup() {
+				const cutoff = new Date();
+				cutoff.setDate(cutoff.getDate() - CONFIG.MAX_AGE_DAYS);
+				
+				for (let i = 0; i < localStorage.length; i++) {
+					const key = localStorage.key(i);
+					if (key.startsWith('water_')) {
+						const [_, year, month, day] = key.split('_').map(Number);
+						const date = new Date(year, month - 1, day);
+						if (date < cutoff) {
+							localStorage.removeItem(key);
+						}
+					}
+				}
+			}
+			
+			// Entry Management, stored by calendar date, not day date
+			addEntry(date, amount, type) {
+				const entries = this.getEntries(date, true);
+				entries.push({
+					time: date.toISOString(),
+					amount: Number(amount),
+					type // 'filled' or 'drunk'
+				});
 				entries.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
-                this.saveEntries(date, entries);
-            }
-            
-            deleteEntry(date, entryIndex) {
-                const entries = this.getEntries(date, true);
-                entries.splice(entryIndex, 1);
-                this.saveEntries(date, entries);
-            }
-            
+				this.saveEntries(date, entries);
+			}
+			
+			deleteEntry(date, entryIndex) {
+				const entries = this.getEntries(date, true);
+				entries.splice(entryIndex, 1);
+				this.saveEntries(date, entries);
+			}
+			
 			// Read entries for a day date, starting at DAY_START_HOUR
 			getDayEntries(date) {
 				const strippedDate = new Date(date);
@@ -747,45 +750,45 @@
 				return entries.filter(entry => CONFIG.getDayDate(new Date(entry.time)).getTime() === strippedDate.getTime());
 			}
 
-            // Week Management
-            getWeekDates(date) {
-                const result = [];
-                const start = new Date(date);
-                // Go to Sunday
-                start.setDate(start.getDate() - start.getDay());
-                
-                for (let i = 0; i < 7; i++) {
-                    const day = new Date(start);
-                    day.setDate(day.getDate() + i);
-                    result.push(day);
-                }
-                return result;
-            }
-            
-            getDaySum(date) {
-                const entries = this.getDayEntries(date);
-                return [entries.length, entries.reduce((sum, entry) => {
-                    return sum + entry.amount;
-                }, 0)];
-            }
-            
-            // UI Management
-            initializeUI() {
-                // Week Navigation
-                document.getElementById('prevWeek').addEventListener('click', () => {
-                    this.currentDate.setDate(this.currentDate.getDate() - 7);
-                    this.updateUI();
-                });
-                
-                document.getElementById('nextWeek').addEventListener('click', () => {
-                    this.currentDate.setDate(this.currentDate.getDate() + 7);
-                    this.updateUI();
-                });
-                
-                document.getElementById('currentWeek').addEventListener('click', () => {
-                    this.currentDate = new Date();
-                    this.updateUI();
-                });
+			// Week Management
+			getWeekDates(date) {
+				const result = [];
+				const start = new Date(date);
+				// Go to Sunday
+				start.setDate(start.getDate() - start.getDay());
+				
+				for (let i = 0; i < 7; i++) {
+					const day = new Date(start);
+					day.setDate(day.getDate() + i);
+					result.push(day);
+				}
+				return result;
+			}
+			
+			getDaySum(date) {
+				const entries = this.getDayEntries(date);
+				return [entries.length, entries.reduce((sum, entry) => {
+					return sum + entry.amount;
+				}, 0)];
+			}
+			
+			// UI Management
+			initializeUI() {
+				// Week Navigation
+				document.getElementById('prevWeek').addEventListener('click', () => {
+					this.currentDate.setDate(this.currentDate.getDate() - 7);
+					this.updateUI();
+				});
+				
+				document.getElementById('nextWeek').addEventListener('click', () => {
+					this.currentDate.setDate(this.currentDate.getDate() + 7);
+					this.updateUI();
+				});
+				
+				document.getElementById('currentWeek').addEventListener('click', () => {
+					this.currentDate = new Date();
+					this.updateUI();
+				});
 
 				// Date Input
 				document.getElementById('datetime').addEventListener('change', (e) => {
@@ -793,112 +796,112 @@
 					this.entryDateIsSet = !!this.selectedEntry || this.formatDateTime(this.entryDate) !== this.formatDateTime(new Date()); /* in edit mode, the date is always set */
 					this.updateDateTimeInput();
 				});
-                
-                // Update numpad handling
-                document.querySelectorAll('.num-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        this.handleNumpadInput(button.dataset.value);
-                    });
-                });
+				
+				// Update numpad handling
+				document.querySelectorAll('.num-button').forEach(button => {
+					button.addEventListener('click', () => {
+						this.handleNumpadInput(button.dataset.value);
+					});
+				});
 
-                // Create preset buttons
+				// Create preset buttons
 				const presetsContainer = document.querySelector('.input-presets');
-                CONFIG.PRESETS.forEach(preset => {
-                    const button = document.createElement('button');
-                    button.className = 'preset-button';
-                    button.textContent = `${CONFIG.formatAmount(preset)}ℓ`;
-                    button.dataset.value = CONFIG.formatAmount(preset);
-                    button.addEventListener('click', () => {
-                        this.currentAmount = parseFloat(button.dataset.value);
-                        this.cursorIndex = CONFIG.formatAmount(this.currentAmount).length;
-                        this.updateAmountDisplay();
-                    });
-                    presetsContainer.appendChild(button);
-                });
-                
-                // Submit Buttons
-                document.getElementById('submitFilled').addEventListener('click', () => this.handleSubmit('filled'));
-                document.getElementById('submitDrunk').addEventListener('click', () => this.handleSubmit('drunk'));
-                
-                // Edit Actions
-                document.getElementById('deleteEntry').addEventListener('click', () => {
-                    if (this.selectedEntry) {
-                        this.deleteEntry(this.selectedEntry.date, this.selectedEntry.index);
-                        this.exitEditMode();
-                        this.showFloatingIcon('#icon-delete');
-                    }
-                });
-                
-                document.getElementById('cancelEdit').addEventListener('click', () => {
-                    this.exitEditMode();
-                });
-                
-                // Initial UI update
-                this.updateDateTimeInput();
+				CONFIG.PRESETS.forEach(preset => {
+					const button = document.createElement('button');
+					button.className = 'preset-button';
+					button.textContent = `${CONFIG.formatAmount(preset)}ℓ`;
+					button.dataset.value = CONFIG.formatAmount(preset);
+					button.addEventListener('click', () => {
+						this.currentAmount = parseFloat(button.dataset.value);
+						this.cursorIndex = CONFIG.formatAmount(this.currentAmount).length;
+						this.updateAmountDisplay();
+					});
+					presetsContainer.appendChild(button);
+				});
+				
+				// Submit Buttons
+				document.getElementById('submitFilled').addEventListener('click', () => this.handleSubmit('filled'));
+				document.getElementById('submitDrunk').addEventListener('click', () => this.handleSubmit('drunk'));
+				
+				// Edit Actions
+				document.getElementById('deleteEntry').addEventListener('click', () => {
+					if (this.selectedEntry) {
+						this.deleteEntry(this.selectedEntry.date, this.selectedEntry.index);
+						this.exitEditMode();
+						this.showFloatingIcon('#icon-delete');
+					}
+				});
+				
+				document.getElementById('cancelEdit').addEventListener('click', () => {
+					this.exitEditMode();
+				});
+				
+				// Initial UI update
+				this.updateDateTimeInput();
 				this.updateAmountDisplay();
-                this.updateUI();
-            }
-            
-            updateUI() {
-                this.updateWeekDisplay();
-                this.updateDaysList();
-                this.updateNavigationState();
-            }
-            
-            updateWeekDisplay() {
-                const week = CONFIG.getWeekNumber(this.currentDate);
+				this.updateUI();
+			}
+			
+			updateUI() {
+				this.updateWeekDisplay();
+				this.updateDaysList();
+				this.updateNavigationState();
+			}
+			
+			updateWeekDisplay() {
+				const week = CONFIG.getWeekNumber(this.currentDate);
 				document.getElementById('currentWeek').classList.toggle('disabled', week === CONFIG.getWeekNumber(new Date()));
-                document.getElementById('currentWeek').textContent = 
-                    `KW ${week}/${this.currentDate.getFullYear()}`;
-            }
-            
-            updateNavigationState() {
-                const now = new Date();
-                const currentWeek = CONFIG.getWeekNumber(now);
-                const selectedWeek = CONFIG.getWeekNumber(this.currentDate);
-                const currentYear = now.getFullYear();
-                const selectedYear = this.currentDate.getFullYear();
-                
-                document.getElementById('nextWeek').disabled = 
-                    (selectedYear > currentYear) || 
-                    (selectedYear === currentYear && selectedWeek >= currentWeek);
-            }
-            
-            updateDaysList() {
-                const daysContainer = document.querySelector('.days');
-                daysContainer.innerHTML = '';
-                
-                this.getWeekDates(this.currentDate).forEach(date => {
-                    const dayElement = this.createDayElement(date);
-                    daysContainer.appendChild(dayElement);
-                });
-            }
-            
-            createDayElement(date) {
-                const dayDiv = document.createElement('div');
-                dayDiv.className = 'day';
-                if (CONFIG.isToday(date)) {
-                    dayDiv.classList.add('today');
-                }
-                
-                // Date
-                const dateDiv = document.createElement('div');
-                dateDiv.className = 'day-date';
-                dateDiv.textContent = CONFIG.formatDate(date, true);
-                
-                // Entries
-                const entriesDiv = document.createElement('div');
-                entriesDiv.className = 'day-entries';
-                
-                const entries = this.getDayEntries(date);
-                entries.reverse().forEach(entry => {  // using rtl order for right-alignment and scroll, so reverse to have newest entries at the end still
-                    const entryDiv = this.createEntryElement(entry);
-                    entriesDiv.appendChild(entryDiv);
-                });
-                
-                // Sum
-                const sumDiv = document.createElement('div');
-                sumDiv.className = 'day-sum';
+				document.getElementById('currentWeek').textContent = 
+					`KW ${week}/${this.currentDate.getFullYear()}`;
+			}
+			
+			updateNavigationState() {
+				const now = new Date();
+				const currentWeek = CONFIG.getWeekNumber(now);
+				const selectedWeek = CONFIG.getWeekNumber(this.currentDate);
+				const currentYear = now.getFullYear();
+				const selectedYear = this.currentDate.getFullYear();
+				
+				document.getElementById('nextWeek').disabled = 
+					(selectedYear > currentYear) || 
+					(selectedYear === currentYear && selectedWeek >= currentWeek);
+			}
+			
+			updateDaysList() {
+				const daysContainer = document.querySelector('.days');
+				daysContainer.innerHTML = '';
+				
+				this.getWeekDates(this.currentDate).forEach(date => {
+					const dayElement = this.createDayElement(date);
+					daysContainer.appendChild(dayElement);
+				});
+			}
+			
+			createDayElement(date) {
+				const dayDiv = document.createElement('div');
+				dayDiv.className = 'day';
+				if (CONFIG.isToday(date)) {
+					dayDiv.classList.add('today');
+				}
+				
+				// Date
+				const dateDiv = document.createElement('div');
+				dateDiv.className = 'day-date';
+				dateDiv.textContent = CONFIG.formatDate(date, true);
+				
+				// Entries
+				const entriesDiv = document.createElement('div');
+				entriesDiv.className = 'day-entries';
+				
+				const entries = this.getDayEntries(date);
+				entries.reverse().forEach(entry => {  // using rtl order for right-alignment and scroll, so reverse to have newest entries at the end still
+					const entryDiv = this.createEntryElement(entry);
+					entriesDiv.appendChild(entryDiv);
+				});
+				
+				// Sum
+				const sumDiv = document.createElement('div');
+				sumDiv.className = 'day-sum';
 				const [count, liters] = this.getDaySum(date);
 				const countDiv = document.createElement('div');
 				countDiv.className = 'day-sum-count';
@@ -908,106 +911,106 @@
 				litersDiv.className = 'day-sum-liters';
 				litersDiv.textContent = CONFIG.formatAmount(liters) + 'ℓ';
 				sumDiv.appendChild(litersDiv);
-                
-                dayDiv.appendChild(dateDiv);
-                dayDiv.appendChild(entriesDiv);
-                dayDiv.appendChild(sumDiv);
-                
-                return dayDiv;
-            }
-            
-            createEntryElement(entry) {
-                const entryDiv = document.createElement('div');
-                entryDiv.className = 'entry';
-                if (this.selectedEntry && 
-                    this.selectedEntry.date.getTime() === entry.date.getTime() && 
-                    this.selectedEntry.index === entry.index) {
-                    entryDiv.classList.add('selected');
-                }
-                
-                const timeRow = document.createElement('div');
-                timeRow.className = 'entry-time-row';
+				
+				dayDiv.appendChild(dateDiv);
+				dayDiv.appendChild(entriesDiv);
+				dayDiv.appendChild(sumDiv);
+				
+				return dayDiv;
+			}
+			
+			createEntryElement(entry) {
+				const entryDiv = document.createElement('div');
+				entryDiv.className = 'entry';
+				if (this.selectedEntry && 
+					this.selectedEntry.date.getTime() === entry.date.getTime() && 
+					this.selectedEntry.index === entry.index) {
+					entryDiv.classList.add('selected');
+				}
+				
+				const timeRow = document.createElement('div');
+				timeRow.className = 'entry-time-row';
 
-                if (entry.type === 'filled') {
-                    const iconFilled = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    iconFilled.classList.add('entry-icon');
-                    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-                    use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#icon-filled');
-                    iconFilled.appendChild(use);
-                    timeRow.appendChild(iconFilled);
-                }
-                
-                const timeDiv = document.createElement('div');
-                timeDiv.className = 'entry-time';
-                timeDiv.textContent = CONFIG.formatTime(new Date(entry.time));
-                timeRow.appendChild(timeDiv);
+				if (entry.type === 'filled') {
+					const iconFilled = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+					iconFilled.classList.add('entry-icon');
+					const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+					use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#icon-filled');
+					iconFilled.appendChild(use);
+					timeRow.appendChild(iconFilled);
+				}
+				
+				const timeDiv = document.createElement('div');
+				timeDiv.className = 'entry-time';
+				timeDiv.textContent = CONFIG.formatTime(new Date(entry.time));
+				timeRow.appendChild(timeDiv);
 
-                if (entry.type === 'drunk') {
-                    const iconDrunk = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    iconDrunk.classList.add('entry-icon');
-                    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-                    use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#icon-drunk');
-                    iconDrunk.appendChild(use);
-                    timeRow.appendChild(iconDrunk);
-                }
-                
-                const amountDiv = document.createElement('div');
-                amountDiv.className = 'entry-amount';
-                amountDiv.textContent = CONFIG.formatAmount(entry.amount) + 'ℓ';
-                
-                entryDiv.appendChild(timeRow);
-                entryDiv.appendChild(amountDiv);
-                
-                entryDiv.addEventListener('click', () => {
-                    this.enterEditMode(entry);
-                });
-                
-                return entryDiv;
-            }
-            
-            updateAmountDisplay() {
-                const formattedFull = CONFIG.formatAmount(this.currentAmount);
-                const hasDecimal = formattedFull.slice(0, this.cursorIndex).includes('.');
-                const maxLength = hasDecimal ? 4 : 3;
-                const isAtMax = this.cursorIndex >= maxLength;
+				if (entry.type === 'drunk') {
+					const iconDrunk = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+					iconDrunk.classList.add('entry-icon');
+					const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+					use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#icon-drunk');
+					iconDrunk.appendChild(use);
+					timeRow.appendChild(iconDrunk);
+				}
+				
+				const amountDiv = document.createElement('div');
+				amountDiv.className = 'entry-amount';
+				amountDiv.textContent = CONFIG.formatAmount(entry.amount) + 'ℓ';
+				
+				entryDiv.appendChild(timeRow);
+				entryDiv.appendChild(amountDiv);
+				
+				entryDiv.addEventListener('click', () => {
+					this.enterEditMode(entry);
+				});
+				
+				return entryDiv;
+			}
+			
+			updateAmountDisplay() {
+				const formattedFull = CONFIG.formatAmount(this.currentAmount);
+				const hasDecimal = formattedFull.slice(0, this.cursorIndex).includes('.');
+				const maxLength = hasDecimal ? 4 : 3;
+				const isAtMax = this.cursorIndex >= maxLength;
 
-                document.querySelectorAll('.preset-button').forEach(button => {
-                    button.classList.toggle('preset-button-current', button.dataset.value === formattedFull);
-                });
+				document.querySelectorAll('.preset-button').forEach(button => {
+					button.classList.toggle('preset-button-current', button.dataset.value === formattedFull);
+				});
 
 				document.querySelector('.amount-display-typed').textContent = formattedFull.slice(0, this.cursorIndex);
-                document.querySelector('.amount-display-remaining').textContent = formattedFull.slice(this.cursorIndex);
+				document.querySelector('.amount-display-remaining').textContent = formattedFull.slice(this.cursorIndex);
 				document.querySelector('.amount-display-unit').classList.toggle('grey', this.cursorIndex === 0);
 				
-                document.querySelectorAll('.num-button').forEach(button => {
-                    const value = button.dataset.value;
-                    if (value === '.') {
-                        button.textContent = isAtMax ? 'C' : '.';
+				document.querySelectorAll('.num-button').forEach(button => {
+					const value = button.dataset.value;
+					if (value === '.') {
+						button.textContent = isAtMax ? 'C' : '.';
 						button.disabled = hasDecimal && !isAtMax;
-                    }
-                    if (value.match(/[0-9]/)) {
-                        button.disabled = isAtMax;
-                    }
+					}
+					if (value.match(/[0-9]/)) {
+						button.disabled = isAtMax;
+					}
 					if (value === '←') {
 						button.disabled = this.cursorIndex === 0;
 					}
-                });
+				});
 
-                document.querySelectorAll('.submit-button').forEach(button => {
-                    button.disabled = this.currentAmount === 0;
-                });
-            }
-            
-            updateDateTimeInput() {
-                const input = document.getElementById('datetime');
-                input.value = this.formatDateTime(this.entryDate);
-            }
-            
+				document.querySelectorAll('.submit-button').forEach(button => {
+					button.disabled = this.currentAmount === 0;
+				});
+			}
+			
+			updateDateTimeInput() {
+				const input = document.getElementById('datetime');
+				input.value = this.formatDateTime(this.entryDate);
+			}
+			
 			formatDateTime(date) {
 				return `${CONFIG.formatDate(date)} ${CONFIG.formatTime(date)}`;
 			}
 
-            parseDateTime(input) {
+			parseDateTime(input) {
 				const parts = input.split(/[^0-9]+/).filter(Boolean);
 				let now = new Date();
 				let day = now.getDate();
@@ -1041,111 +1044,111 @@
 				}
 				const date = new Date(year, month - 1, day, hours, minutes);
 				return isNaN(date.getTime()) ? now : date;
-            }
-            
-            enterEditMode(entry) {
-                this.selectedEntry = entry;
+			}
+			
+			enterEditMode(entry) {
+				this.selectedEntry = entry;
 				this.entryDate = new Date(entry.time);
 				this.entryDateIsSet = true;
-                this.currentAmount = entry.amount;
-                this.cursorIndex = CONFIG.formatAmount(this.currentAmount).length;
-                
-                // Update UI
-                document.querySelector('.input').classList.add('mode-edit');
-                // Highlight the correct submit button
-                document.getElementById('submitFilled').classList.toggle('selected', entry.type === 'filled');
-                document.getElementById('submitDrunk').classList.toggle('selected', entry.type === 'drunk');
-                
+				this.currentAmount = entry.amount;
+				this.cursorIndex = CONFIG.formatAmount(this.currentAmount).length;
+				
+				// Update UI
+				document.querySelector('.input').classList.add('mode-edit');
+				// Highlight the correct submit button
+				document.getElementById('submitFilled').classList.toggle('selected', entry.type === 'filled');
+				document.getElementById('submitDrunk').classList.toggle('selected', entry.type === 'drunk');
+				
 				this.updateDateTimeInput();
-                this.updateAmountDisplay();
-                this.updateUI();
-            }
-            
-            exitEditMode() {
-                this.selectedEntry = null;
+				this.updateAmountDisplay();
+				this.updateUI();
+			}
+			
+			exitEditMode() {
+				this.selectedEntry = null;
 				this.entryDate = new Date();
 				this.entryDateIsSet = false;
-                this.currentAmount = 0;
-                this.cursorIndex = 0;
-                
-                // Update UI
-                document.querySelector('.input').classList.remove('mode-edit');
-                document.getElementById('submitFilled').classList.remove('selected');
-                document.getElementById('submitDrunk').classList.remove('selected');
-                
-                this.updateDateTimeInput();
-                this.updateAmountDisplay();
-                this.updateUI();
-            }
-            
-            showFloatingIcon(iconId) {
-                // Show floating icon
-                const floatingIcon = document.createElement('div');
-                floatingIcon.className = 'floating-icon';
-                const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                icon.setAttribute('width', '100%');
-                icon.setAttribute('height', '100%');
-                icon.setAttribute('viewBox', '0 0 24 24');
-                const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-                use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', iconId);
-                icon.appendChild(use);
-                floatingIcon.appendChild(icon);
-                document.body.appendChild(floatingIcon);
+				this.currentAmount = 0;
+				this.cursorIndex = 0;
+				
+				// Update UI
+				document.querySelector('.input').classList.remove('mode-edit');
+				document.getElementById('submitFilled').classList.remove('selected');
+				document.getElementById('submitDrunk').classList.remove('selected');
+				
+				this.updateDateTimeInput();
+				this.updateAmountDisplay();
+				this.updateUI();
+			}
+			
+			showFloatingIcon(iconId) {
+				// Show floating icon
+				const floatingIcon = document.createElement('div');
+				floatingIcon.className = 'floating-icon';
+				const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+				icon.setAttribute('width', '100%');
+				icon.setAttribute('height', '100%');
+				icon.setAttribute('viewBox', '0 0 24 24');
+				const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+				use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', iconId);
+				icon.appendChild(use);
+				floatingIcon.appendChild(icon);
+				document.body.appendChild(floatingIcon);
 
-                // Remove floating icon after animation
-                setTimeout(() => {
-                    floatingIcon.remove();
-                }, 1000);
-            }
+				// Remove floating icon after animation
+				setTimeout(() => {
+					floatingIcon.remove();
+				}, 1000);
+			}
 
-            handleSubmit(type) {
-                let amount = parseFloat(this.currentAmount);
-                
-                if (isNaN(amount) || amount <= 0 || amount > CONFIG.MAX_AMOUNT) {
-                    return;
-                }
+			handleSubmit(type) {
+				let amount = parseFloat(this.currentAmount);
+				
+				if (isNaN(amount) || amount <= 0 || amount > CONFIG.MAX_AMOUNT) {
+					return;
+				}
 
-                this.saveLastAmount(amount);
+				this.saveLastAmount(amount);
 
-                if (this.selectedEntry) {
+				if (this.selectedEntry) {
 					this.deleteEntry(this.selectedEntry.date, this.selectedEntry.index);
-                    this.addEntry(this.entryDate, amount, type);
-                    this.exitEditMode();
-                } else {
-                    this.addEntry(this.entryDate, amount, type);
+					this.addEntry(this.entryDate, amount, type);
+					this.exitEditMode();
+				} else {
+					this.addEntry(this.entryDate, amount, type);
 					this.entryDate = new Date();
 					this.entryDateIsSet = false;
-                    this.updateDateTimeInput();
-                    this.updateAmountDisplay();
+					this.updateDateTimeInput();
+					this.updateAmountDisplay();
 					this.updateUI();
-                }
+				}
 
-                this.showFloatingIcon(type === 'filled' ? '#icon-filled' : '#icon-drunk');
-            }
+				this.showFloatingIcon(type === 'filled' ? '#icon-filled' : '#icon-drunk');
+			}
 
-            handleNumpadInput(value) {
-                const formattedFull = CONFIG.formatAmount(this.currentAmount);
-                const hasDecimal = formattedFull.slice(0, this.cursorIndex).includes('.');
-                const maxLength = hasDecimal ? 4 : 3;
+			handleNumpadInput(value) {
+				const formattedFull = CONFIG.formatAmount(this.currentAmount);
+				const hasDecimal = formattedFull.slice(0, this.cursorIndex).includes('.');
+				const maxLength = hasDecimal ? 4 : 3;
 				const isAtMax = this.cursorIndex >= maxLength;
 
-                if (value === '←') {
-                    if (this.cursorIndex > 0) {
-                        this.currentAmount = parseFloat(formattedFull.slice(0, this.cursorIndex - 1)) || 0;
-                        this.cursorIndex--;
-                        if(this.cursorIndex === 0) this.saveLastAmount(0);
-                    }
-                } else if (value === '.' && isAtMax) {
-                    // Clear when "C" is pressed
-                    this.currentAmount = 0;
-                    this.cursorIndex = 0;
-                    this.saveLastAmount(0);
-                } else if (value === '.') {
+				if (value === '←') {
+					if (this.cursorIndex > 0) {
+						this.currentAmount = parseFloat(formattedFull.slice(0, this.cursorIndex - 1)) || 0;
+						this.cursorIndex--;
+						if(this.cursorIndex === 0) this.saveLastAmount(0);
+					}
+				} else if (value === '.' && isAtMax) {
+					// Clear when "C" is pressed
+					this.currentAmount = 0;
+					this.cursorIndex = 0;
+					this.saveLastAmount(0);
+				} else if (value === '.') {
 					if (!formattedFull.slice(0, this.cursorIndex).includes('.')) {
-                        this.cursorIndex = formattedFull.indexOf('.') + 1;
-                    }
-                } else if (value.match(/[0-9]/)) {
-                    if (!isAtMax) {
+						this.cursorIndex = formattedFull.indexOf('.') + 1;
+					}
+				} else if (value.match(/[0-9]/)) {
+					if (!isAtMax) {
 						if (formattedFull.slice(0, this.cursorIndex) === '0') {
 							this.currentAmount = value;
 							this.cursorIndex = 1;
@@ -1153,54 +1156,54 @@
 							this.currentAmount = parseFloat(formattedFull.slice(0, this.cursorIndex) + value);
 							this.cursorIndex++;
 						}
-                    }
-                }
-                this.updateAmountDisplay();
-            }
-        }
-        
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', () => {
-            window.app = new WaterTracker();
-       
-            const buttonSelector = 'button, .entry';
+					}
+				}
+				this.updateAmountDisplay();
+			}
+		}
+		
+		// Initialize the app
+		document.addEventListener('DOMContentLoaded', () => {
+			window.app = new WaterTracker();
+	   
+			const buttonSelector = 'button, .entry';
 
-            const removeAllHover = () => {
-                document.querySelectorAll('.hover').forEach(el => el.classList.remove('hover'));
-            }
+			const removeAllHover = () => {
+				document.querySelectorAll('.hover').forEach(el => el.classList.remove('hover'));
+			}
 
-            // Touch event handling for buttons and entries
-            document.addEventListener('touchstart', (e) => {
-                removeAllHover();
-                const target = e.target.closest(buttonSelector);
-                if (target && !target.disabled && !target.classList.contains('disabled')) {
-                    target.classList.add('hover');
-                }
-            }, { passive: true });
+			// Touch event handling for buttons and entries
+			document.addEventListener('touchstart', (e) => {
+				removeAllHover();
+				const target = e.target.closest(buttonSelector);
+				if (target && !target.disabled && !target.classList.contains('disabled')) {
+					target.classList.add('hover');
+				}
+			}, { passive: true });
 
-            document.addEventListener('touchend', (e) => {
-                removeAllHover();
-            }, { passive: true });
+			document.addEventListener('touchend', (e) => {
+				removeAllHover();
+			}, { passive: true });
 
-            document.addEventListener('touchcancel', () => {
-                removeAllHover();
-            }, { passive: true });
+			document.addEventListener('touchcancel', () => {
+				removeAllHover();
+			}, { passive: true });
 
-            // Handle case where touch moves outside the element
-            document.addEventListener('touchmove', (e) => {
-                const touch = e.touches[0];
-                const hoveredElement = document.elementFromPoint(touch.clientX, touch.clientY);
+			// Handle case where touch moves outside the element
+			document.addEventListener('touchmove', (e) => {
+				const touch = e.touches[0];
+				const hoveredElement = document.elementFromPoint(touch.clientX, touch.clientY);
 
-                // Remove hover from all elements that are not currently being touched
-                document.querySelectorAll('.hover').forEach(el => {
-                    if (!hoveredElement || !el.contains(hoveredElement)) {
-                        el.classList.remove('hover');
-                    }
-                });
+				// Remove hover from all elements that are not currently being touched
+				document.querySelectorAll('.hover').forEach(el => {
+					if (!hoveredElement || !el.contains(hoveredElement)) {
+						el.classList.remove('hover');
+					}
+				});
 
 
-            }, { passive: true });
-        });
-    </script>
+			}, { passive: true });
+		});
+	</script>
 </body>
 </html>
