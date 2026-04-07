@@ -37,6 +37,8 @@
 		:root {
 			--water-blue: #007AFF;
 			--water-blue-light: #878aa7;
+			--water-blue-very-light: #cfe3ff;
+			--recent-entry-fade-ms: 8000ms;
 		}
 
 		/* Base */
@@ -194,6 +196,7 @@
 			white-space: nowrap;
 			width: 92px;
 			text-align: right;
+			cursor: pointer;
 		}
 
 		.day-entries {
@@ -223,11 +226,25 @@
 			padding: 2px 4px;
 			border-radius: 12px;
 			border: solid 1px var(--water-blue-light);
+			color: #000;
+			transition: border-color var(--recent-entry-fade-ms) ease-out, color var(--recent-entry-fade-ms) ease-out;
+
+		}
+		.entry.recent {
+			border-color: var(--water-blue);
+			color: var(--water-blue);
+		}
+		.entry.recent .entry-time-row {
+			color: var(--water-blue);
 		}
 		.entry.selected {
 			border-color: var(--water-blue);
-			color: var(--water-blue);
+			background: var(--water-blue);
+			color: #fff;
 			font-weight: bold;
+		}
+		.entry.selected .entry-time-row {
+			color: var(--water-blue-very-light);
 		}
 
 		.entry-time-row {
@@ -237,6 +254,7 @@
 			color: var(--water-blue-light);
 			font-size: 12px;
 			font-weight: normal;
+			transition: color var(--recent-entry-fade-ms) ease-out;
 		}
 
 		.entry-icon {
@@ -316,13 +334,48 @@
 			}
 		}
 
+		.input-datetime-row {
+			display: flex;
+			gap: 8px;
+			margin-bottom: 16px;
+		}
+
+		.input-datetime-wrapper {
+			position: relative;
+			flex: 1;
+		}
+
 		.input-datetime {
 			width: 100%;
 			padding: 12px 16px;
 			border: none;
 			border-radius: 10px;
 			background: #fff;
-			margin-bottom: 16px;
+		}
+
+		.input-datetime-now {
+			position: absolute;
+			right: 16px;
+			top: 50%;
+			transform: translateY(-50%);
+			color: var(--water-blue-light);
+			pointer-events: none;
+		}
+		.input-datetime-now.hidden {
+			display: none;
+		}
+
+		.datetime-reset-button, .datetime-shift-button {
+			padding: 0px 14px;
+			flex: 0 0 auto;
+			border: none;
+			border-radius: 10px;
+			background: #fff;
+			color: var(--water-blue);
+			font-size: 20px;
+		}
+		.datetime-reset-button.hidden {
+			display: none;
 		}
 
 		.input-presets {
@@ -498,7 +551,15 @@
 						<button class="action-button" id="cancelEdit"><svg width="24" height="24"><use href="#icon-cancel"></use></svg></button>
 					</span>
 				</div>
-				<input type="text" class="input-datetime" id="datetime" placeholder="" value="">
+				<div class="input-datetime-row">
+					<div class="input-datetime-wrapper">
+						<input type="text" class="input-datetime" id="datetime" placeholder="" value="">
+						<span class="input-datetime-now" id="datetimeNow">Jetzt</span>
+					</div>
+					<button class="datetime-reset-button hidden" id="datetimeReset">↺</button>
+					<button class="datetime-shift-button" id="datetimePrev">←</button>
+					<button class="datetime-shift-button" id="datetimeNext">→</button>
+				</div>
 				<div class="input-presets">
 				</div>
 				<div class="input-numpad">
@@ -539,6 +600,8 @@
 			MAX_AMOUNT: 999,
 
 			DAY_START_HOUR: 4,
+			DATETIME_SHIFT_MINUTES: 30,
+			RECENT_ENTRY_FADE_MS: 8000,
 			
 			// Amount Formatting
 			formatAmount: (amount) => {
@@ -618,9 +681,12 @@
 		// Data Management
 		class WaterTracker {
 			constructor() {
-				this.currentDate = new Date();
-				this.today = CONFIG.getDayDate(this.currentDate);
+				document.documentElement.style.setProperty('--recent-entry-fade-ms', `${CONFIG.RECENT_ENTRY_FADE_MS}ms`);
+				this.currentDate = CONFIG.getDayDate(new Date());
+				this.today = new Date(this.currentDate);
 				this.selectedEntry = null;
+				this.currentAmountBeforeEdit = null;
+				this.recentSubmittedEntry = null;
 				this.entryDate = new Date();
 				this.entryDateIsSet = false;
 				this.currentAmount = this.getLastAmount();
@@ -786,7 +852,7 @@
 				});
 				
 				document.getElementById('currentWeek').addEventListener('click', () => {
-					this.currentDate = new Date();
+					this.currentDate = CONFIG.getDayDate(new Date());
 					this.updateUI();
 				});
 
@@ -795,6 +861,20 @@
 					this.entryDate = this.parseDateTime(e.target.value);
 					this.entryDateIsSet = !!this.selectedEntry || this.formatDateTime(this.entryDate) !== this.formatDateTime(new Date()); /* in edit mode, the date is always set */
 					this.updateDateTimeInput();
+				});
+
+				document.getElementById('datetimeReset').addEventListener('click', () => {
+					this.entryDate = new Date();
+					this.entryDateIsSet = !!this.selectedEntry;
+					this.updateDateTimeInput();
+				});
+
+				document.getElementById('datetimePrev').addEventListener('click', () => {
+					this.shiftEntryDateByInterval(-1);
+				});
+
+				document.getElementById('datetimeNext').addEventListener('click', () => {
+					this.shiftEntryDateByInterval(1);
 				});
 				
 				// Update numpad handling
@@ -814,6 +894,9 @@
 					button.addEventListener('click', () => {
 						this.currentAmount = parseFloat(button.dataset.value);
 						this.cursorIndex = CONFIG.formatAmount(this.currentAmount).length;
+						if (!this.selectedEntry) {
+							this.saveLastAmount(this.currentAmount);
+						}
 						this.updateAmountDisplay();
 					});
 					presetsContainer.appendChild(button);
@@ -827,13 +910,13 @@
 				document.getElementById('deleteEntry').addEventListener('click', () => {
 					if (this.selectedEntry) {
 						this.deleteEntry(this.selectedEntry.date, this.selectedEntry.index);
-						this.exitEditMode();
+						this.exitEditMode(true);
 						this.showFloatingIcon('#icon-delete');
 					}
 				});
 				
 				document.getElementById('cancelEdit').addEventListener('click', () => {
-					this.exitEditMode();
+					this.exitEditMode(true);
 				});
 				
 				// Initial UI update
@@ -850,13 +933,13 @@
 			
 			updateWeekDisplay() {
 				const week = CONFIG.getWeekNumber(this.currentDate);
-				document.getElementById('currentWeek').classList.toggle('disabled', week === CONFIG.getWeekNumber(new Date()));
+				document.getElementById('currentWeek').classList.toggle('disabled', week === CONFIG.getWeekNumber(CONFIG.getDayDate(new Date())));
 				document.getElementById('currentWeek').textContent = 
 					`KW ${week}/${this.currentDate.getFullYear()}`;
 			}
 			
 			updateNavigationState() {
-				const now = new Date();
+				const now = CONFIG.getDayDate(new Date());
 				const currentWeek = CONFIG.getWeekNumber(now);
 				const selectedWeek = CONFIG.getWeekNumber(this.currentDate);
 				const currentYear = now.getFullYear();
@@ -888,6 +971,9 @@
 				const dateDiv = document.createElement('div');
 				dateDiv.className = 'day-date';
 				dateDiv.textContent = CONFIG.formatDate(date, true);
+				dateDiv.addEventListener('click', () => {
+					this.setEntryDateFromDay(date);
+				});
 				
 				// Entries
 				const entriesDiv = document.createElement('div');
@@ -922,10 +1008,15 @@
 			createEntryElement(entry) {
 				const entryDiv = document.createElement('div');
 				entryDiv.className = 'entry';
+				entryDiv.dataset.entryTime = entry.time;
+				entryDiv.dataset.entryAmount = Number(entry.amount);
+				entryDiv.dataset.entryType = entry.type;
 				if (this.selectedEntry && 
 					this.selectedEntry.date.getTime() === entry.date.getTime() && 
 					this.selectedEntry.index === entry.index) {
 					entryDiv.classList.add('selected');
+				} else if (this.isRecentSubmittedEntry(entry)) {
+					entryDiv.classList.add('recent');
 				}
 				
 				const timeRow = document.createElement('div');
@@ -962,10 +1053,55 @@
 				entryDiv.appendChild(amountDiv);
 				
 				entryDiv.addEventListener('click', () => {
-					this.enterEditMode(entry);
+					if (this.selectedEntry &&
+						this.selectedEntry.date.getTime() === entry.date.getTime() &&
+						this.selectedEntry.index === entry.index) {
+						this.exitEditMode(true);
+					} else {
+						this.enterEditMode(entry);
+					}
 				});
 				
 				return entryDiv;
+			}
+
+			markRecentSubmittedEntry(date, amount, type) {
+				this.recentSubmittedEntry = {
+					time: new Date(date).toISOString(),
+					amount: Number(amount),
+					type: type
+				};
+			}
+
+			isRecentSubmittedEntry(entry) {
+				if (!this.recentSubmittedEntry) {
+					return false;
+				}
+				return entry.time === this.recentSubmittedEntry.time &&
+					Number(entry.amount) === this.recentSubmittedEntry.amount &&
+					entry.type === this.recentSubmittedEntry.type;
+			}
+
+			triggerRecentEntryFade() {
+				if (!this.recentSubmittedEntry) {
+					return;
+				}
+				const recentEntry = this.recentSubmittedEntry;
+				const recentElement = Array.from(document.querySelectorAll('.entry.recent')).find((entryEl) => {
+					return entryEl.dataset.entryTime === recentEntry.time &&
+						Number(entryEl.dataset.entryAmount) === recentEntry.amount &&
+						entryEl.dataset.entryType === recentEntry.type;
+				});
+				if (recentElement) {
+					requestAnimationFrame(() => {
+						recentElement.classList.remove('recent');
+					});
+				}
+				setTimeout(() => {
+					if (this.recentSubmittedEntry === recentEntry) {
+						this.recentSubmittedEntry = null;
+					}
+				}, CONFIG.RECENT_ENTRY_FADE_MS);
 			}
 			
 			updateAmountDisplay() {
@@ -1003,7 +1139,62 @@
 			
 			updateDateTimeInput() {
 				const input = document.getElementById('datetime');
+				const resetButton = document.getElementById('datetimeReset');
+				const nowLabel = document.getElementById('datetimeNow');
 				input.value = this.formatDateTime(this.entryDate);
+				resetButton.classList.toggle('hidden', !this.entryDateIsSet);
+				nowLabel.classList.toggle('hidden', this.entryDateIsSet);
+			}
+
+			setEntryDateFromDay(dayDate) {
+				const selectedDay = new Date(dayDate);
+				selectedDay.setHours(0, 0, 0, 0);
+				const today = CONFIG.getDayDate(new Date());
+
+				if (selectedDay.getTime() === today.getTime()) {
+					this.entryDate = new Date();
+					this.entryDateIsSet = !!this.selectedEntry;
+				} else if (selectedDay.getTime() < today.getTime()) {
+					const entryDate = new Date(selectedDay);
+					entryDate.setDate(entryDate.getDate() + 1);
+					entryDate.setHours(CONFIG.DAY_START_HOUR, 0, 0, 0);
+					entryDate.setMinutes(entryDate.getMinutes() - 1);
+					this.entryDate = entryDate;
+					this.entryDateIsSet = true;
+				} else {
+					const entryDate = new Date(selectedDay);
+					entryDate.setHours(CONFIG.DAY_START_HOUR, 0, 0, 0);
+					this.entryDate = entryDate;
+					this.entryDateIsSet = true;
+				}
+
+				this.updateDateTimeInput();
+			}
+
+			shiftEntryDateByInterval(direction) {
+				const d = new Date(this.entryDate);
+				d.setSeconds(0, 0);
+				const minutes = d.getMinutes();
+				const step = CONFIG.DATETIME_SHIFT_MINUTES;
+				const isBoundary = minutes % step === 0;
+
+				if (direction < 0) {
+					if (isBoundary) {
+						d.setMinutes(minutes - step);
+					} else {
+						d.setMinutes(Math.floor(minutes / step) * step);
+					}
+				} else if (direction > 0) {
+					if (isBoundary) {
+						d.setMinutes(minutes + step);
+					} else {
+						d.setMinutes(Math.ceil(minutes / step) * step);
+					}
+				}
+
+				this.entryDate = d;
+				this.entryDateIsSet = true;
+				this.updateDateTimeInput();
 			}
 			
 			formatDateTime(date) {
@@ -1047,6 +1238,9 @@
 			}
 			
 			enterEditMode(entry) {
+				if (!this.selectedEntry) { // if we're not editing yet, store the current amount
+					this.currentAmountBeforeEdit = this.currentAmount;
+				}
 				this.selectedEntry = entry;
 				this.entryDate = new Date(entry.time);
 				this.entryDateIsSet = true;
@@ -1064,12 +1258,15 @@
 				this.updateUI();
 			}
 			
-			exitEditMode() {
+			exitEditMode(restoreAmount = false) {
 				this.selectedEntry = null;
 				this.entryDate = new Date();
 				this.entryDateIsSet = false;
-				this.currentAmount = 0;
-				this.cursorIndex = 0;
+				if (restoreAmount && this.currentAmountBeforeEdit !== null) {
+					this.currentAmount = this.currentAmountBeforeEdit;
+				}
+				this.currentAmountBeforeEdit = null;
+				this.cursorIndex = CONFIG.formatAmount(this.currentAmount).length;
 				
 				// Update UI
 				document.querySelector('.input').classList.remove('mode-edit');
@@ -1103,6 +1300,7 @@
 
 			handleSubmit(type) {
 				let amount = parseFloat(this.currentAmount);
+				const submittedDate = new Date(this.entryDate);
 				
 				if (isNaN(amount) || amount <= 0 || amount > CONFIG.MAX_AMOUNT) {
 					return;
@@ -1112,16 +1310,20 @@
 
 				if (this.selectedEntry) {
 					this.deleteEntry(this.selectedEntry.date, this.selectedEntry.index);
-					this.addEntry(this.entryDate, amount, type);
-					this.exitEditMode();
+					this.addEntry(submittedDate, amount, type);
+					this.markRecentSubmittedEntry(submittedDate, amount, type);
+					this.exitEditMode(false);
 				} else {
-					this.addEntry(this.entryDate, amount, type);
+					this.addEntry(submittedDate, amount, type);
+					this.markRecentSubmittedEntry(submittedDate, amount, type);
 					this.entryDate = new Date();
 					this.entryDateIsSet = false;
+					this.cursorIndex = CONFIG.formatAmount(this.currentAmount).length;
 					this.updateDateTimeInput();
 					this.updateAmountDisplay();
 					this.updateUI();
 				}
+				this.triggerRecentEntryFade();
 
 				this.showFloatingIcon(type === 'filled' ? '#icon-filled' : '#icon-drunk');
 			}
@@ -1136,13 +1338,11 @@
 					if (this.cursorIndex > 0) {
 						this.currentAmount = parseFloat(formattedFull.slice(0, this.cursorIndex - 1)) || 0;
 						this.cursorIndex--;
-						if(this.cursorIndex === 0) this.saveLastAmount(0);
 					}
 				} else if (value === '.' && isAtMax) {
 					// Clear when "C" is pressed
 					this.currentAmount = 0;
 					this.cursorIndex = 0;
-					this.saveLastAmount(0);
 				} else if (value === '.') {
 					if (!formattedFull.slice(0, this.cursorIndex).includes('.')) {
 						this.cursorIndex = formattedFull.indexOf('.') + 1;
@@ -1157,6 +1357,9 @@
 							this.cursorIndex++;
 						}
 					}
+				}
+				if (!this.selectedEntry) {
+					this.saveLastAmount(this.currentAmount);
 				}
 				this.updateAmountDisplay();
 			}
