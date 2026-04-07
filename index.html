@@ -123,16 +123,28 @@
 
 		.header-content {
 			height: 44px;
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
+			position: relative;
 			padding: 0 16px;
+		}
+
+		.header-side {
+			position: absolute;
+			top: 0;
+			height: 44px;
+			display: flex;
+			gap: 4px;
+			align-items: center;
+		}
+		.header-side-left {
+			left: 20px;
+		}
+		.header-side-right {
+			right: 20px;
 		}
 
 		.nav-button {
 			width: 36px;
 			height: 36px;
-			margin: 4px;
 			background: color-mix(in srgb, var(--water-blue-light), white 94%);
 			color: var(--water-blue);
 			font-size: 24px;
@@ -147,9 +159,18 @@
 			opacity: 0.3;
 		}
 
+		.nav-button-settings .nav-button-settings-icon {
+			display: block;
+			transform: translateY(-1px);
+		}
+
 		.week-display {
+			position: absolute;
+			left: 50%;
+			top: 4px;
+			transform: translateX(-50%);
 			height: 36px;
-			margin: 4px;
+			margin: 0;
 			padding: 0 16px;
 			border: none;
 			font-size: 18px;
@@ -529,9 +550,14 @@
 		<!-- Header -->
 		<header class="header">
 			<div class="header-content">
-				<button class="nav-button" id="prevWeek"><svg width="24" height="24"><use href="#icon-arrow-left"></use></svg></button>
+				<div class="header-side header-side-left">
+					<button class="nav-button" id="prevWeek"><svg width="24" height="24"><use href="#icon-arrow-left"></use></svg></button>
+				</div>
 				<button class="week-display" id="currentWeek"></button>
-				<button class="nav-button" id="nextWeek" disabled><svg width="24" height="24"><use href="#icon-arrow-right"></use></svg></button>
+				<div class="header-side header-side-right">
+					<button class="nav-button nav-button-settings" id="editSettings"><span class="nav-button-settings-icon">⚙</span></button>
+					<button class="nav-button" id="nextWeek" disabled><svg width="24" height="24"><use href="#icon-arrow-right"></use></svg></button>
+				</div>
 			</div>
 		</header>
 
@@ -602,6 +628,10 @@
 			DAY_START_HOUR: 4,
 			DATETIME_SHIFT_MINUTES: 30,
 			RECENT_ENTRY_FADE_MS: 8000,
+			WEBDAV_SETTINGS_KEY: 'webdav_settings',
+			WEBDAV_UPDATED_AT_KEY: 'webdav_updated_at',
+			WEBDAV_DEFAULT_FILE: 'NotSafe/water-sync.json',
+			WEBDAV_SYNC_INTERVAL_MS: 10000,
 			
 			// Amount Formatting
 			formatAmount: (amount) => {
@@ -687,16 +717,22 @@
 				this.selectedEntry = null;
 				this.currentAmountBeforeEdit = null;
 				this.recentSubmittedEntry = null;
+				this.webDavSettings = this.getWebDavSettings();
+				this.webDavPollTimer = null;
+				this.webDavPushTimer = null;
+				this.isApplyingRemoteData = false;
 				this.entryDate = new Date();
 				this.entryDateIsSet = false;
 				this.currentAmount = this.getLastAmount();
 				this.cursorIndex = this.currentAmount ? CONFIG.formatAmount(this.currentAmount).length : 0;
+				this.ensureWebDavSettings();
 				
 				// Load and cleanup data
 				this.cleanup();
 				
 				// Initialize UI
 				this.initializeUI();
+				this.initializeWebDavSync();
 				
 				// Start time update
 				this.startTimeUpdate();
@@ -737,6 +773,238 @@
 
 			saveLastAmount(amount) {
 				localStorage.setItem('water_last_amount', CONFIG.formatAmount(amount));
+				if (!this.isApplyingRemoteData) {
+					this.scheduleWebDavPush();
+				}
+			}
+
+			getWebDavSettings() {
+				try {
+					const raw = localStorage.getItem(CONFIG.WEBDAV_SETTINGS_KEY);
+					if (!raw) {
+						return null;
+					}
+					const parsed = JSON.parse(raw);
+					if (!parsed.url || !parsed.username || !parsed.password) {
+						return null;
+					}
+					return parsed;
+				} catch (e) {
+					return null;
+				}
+			}
+
+			saveWebDavSettings(settings) {
+				localStorage.setItem(CONFIG.WEBDAV_SETTINGS_KEY, JSON.stringify(settings));
+				this.webDavSettings = settings;
+			}
+
+			promptWebDavSettings(existingSettings = null) {
+				const current = existingSettings || {};
+				const url = prompt('WebDAV URL', current.url || '');
+				if (url === null) {
+					return null;
+				}
+				const username = prompt('WebDAV username', current.username || '');
+				if (username === null) {
+					return null;
+				}
+				const password = prompt('WebDAV password', current.password || '');
+				if (password === null) {
+					return null;
+				}
+				const trimmedUrl = url.trim();
+				const trimmedUsername = username.trim();
+				if (!trimmedUrl || !trimmedUsername || !password) {
+					alert('WebDAV settings were not saved. Please provide URL, username, and password.');
+					return null;
+				}
+				return {
+					url: trimmedUrl,
+					username: trimmedUsername,
+					password: password
+				};
+			}
+
+			ensureWebDavSettings() {
+				if (this.webDavSettings) {
+					return;
+				}
+				const settings = this.promptWebDavSettings();
+				if (settings) {
+					this.saveWebDavSettings(settings);
+				}
+			}
+
+			getWebDavFileUrl() {
+				if (!this.webDavSettings || !this.webDavSettings.url) {
+					return '';
+				}
+				const baseUrl = this.webDavSettings.url.trim();
+				const defaultFile = CONFIG.WEBDAV_DEFAULT_FILE.replace(/^\/+/, '');
+				const likelyFile = /\/[^\/]+\.[^\/]+$/.test(baseUrl);
+				if (likelyFile) {
+					return baseUrl;
+				}
+				if (baseUrl.endsWith('/')) {
+					return baseUrl + defaultFile;
+				}
+				return `${baseUrl}/${defaultFile}`;
+			}
+
+			getWebDavAuthHeader() {
+				if (!this.webDavSettings) {
+					return '';
+				}
+				return `Basic ${btoa(`${this.webDavSettings.username}:${this.webDavSettings.password}`)}`;
+			}
+
+			getWaterDataSnapshot() {
+				const data = {};
+				for (let i = 0; i < localStorage.length; i++) {
+					const key = localStorage.key(i);
+					if (key && key.startsWith('water_')) {
+						data[key] = localStorage.getItem(key);
+					}
+				}
+				return data;
+			}
+
+			setWaterDataSnapshot(data) {
+				const keysToRemove = [];
+				for (let i = 0; i < localStorage.length; i++) {
+					const key = localStorage.key(i);
+					if (key && key.startsWith('water_')) {
+						keysToRemove.push(key);
+					}
+				}
+				keysToRemove.forEach(key => localStorage.removeItem(key));
+				Object.keys(data || {}).forEach(key => {
+					localStorage.setItem(key, String(data[key]));
+				});
+			}
+
+			getLocalWebDavUpdatedAt() {
+				return localStorage.getItem(CONFIG.WEBDAV_UPDATED_AT_KEY) || '';
+			}
+
+			setLocalWebDavUpdatedAt(updatedAt) {
+				if (updatedAt) {
+					localStorage.setItem(CONFIG.WEBDAV_UPDATED_AT_KEY, updatedAt);
+				}
+			}
+
+			normalizeRemotePayload(payload) {
+				if (!payload || typeof payload !== 'object') {
+					return null;
+				}
+				if (payload.data && typeof payload.data === 'object') {
+					return payload;
+				}
+				return {
+					updatedAt: '',
+					data: payload
+				};
+			}
+
+			async pullFromWebDav(createIfMissing = false) {
+				if (!this.webDavSettings) {
+					return;
+				}
+				try {
+					const response = await fetch(this.getWebDavFileUrl(), {
+						method: 'GET',
+						headers: {
+							'Authorization': this.getWebDavAuthHeader()
+						}
+					});
+					if (response.status === 404) {
+						if (createIfMissing) {
+							this.scheduleWebDavPush(true);
+						}
+						return;
+					}
+					if (!response.ok) {
+						return;
+					}
+					const text = await response.text();
+					if (!text.trim()) {
+						return;
+					}
+					const parsed = JSON.parse(text);
+					const payload = this.normalizeRemotePayload(parsed);
+					if (!payload || !payload.data || this.selectedEntry) {
+						return;
+					}
+					const remoteUpdatedAt = payload.updatedAt || '';
+					if (remoteUpdatedAt && remoteUpdatedAt === this.getLocalWebDavUpdatedAt()) {
+						return;
+					}
+					this.isApplyingRemoteData = true;
+					this.setWaterDataSnapshot(payload.data);
+					this.setLocalWebDavUpdatedAt(remoteUpdatedAt);
+					this.currentAmount = this.getLastAmount();
+					this.cursorIndex = this.currentAmount ? CONFIG.formatAmount(this.currentAmount).length : 0;
+					this.updateDateTimeInput();
+					this.updateAmountDisplay();
+					this.updateUI();
+					this.isApplyingRemoteData = false;
+				} catch (e) {
+					console.error('WebDAV pull failed:', e);
+					this.isApplyingRemoteData = false;
+				}
+			}
+
+			async pushToWebDav() {
+				if (!this.webDavSettings) {
+					return;
+				}
+				const payload = {
+					updatedAt: new Date().toISOString(),
+					data: this.getWaterDataSnapshot()
+				};
+				try {
+					const response = await fetch(this.getWebDavFileUrl(), {
+						method: 'PUT',
+						headers: {
+							'Authorization': this.getWebDavAuthHeader(),
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(payload)
+					});
+					if (response.ok) {
+						this.setLocalWebDavUpdatedAt(payload.updatedAt);
+					}
+				} catch (e) {
+					console.error('WebDAV push failed:', e);
+				}
+			}
+
+			scheduleWebDavPush(immediate = false) {
+				if (!this.webDavSettings) {
+					return;
+				}
+				if (this.webDavPushTimer) {
+					clearTimeout(this.webDavPushTimer);
+				}
+				this.webDavPushTimer = setTimeout(() => {
+					this.webDavPushTimer = null;
+					this.pushToWebDav();
+				}, immediate ? 0 : 500);
+			}
+
+			initializeWebDavSync(restart = false) {
+				if (restart && this.webDavPollTimer) {
+					clearInterval(this.webDavPollTimer);
+					this.webDavPollTimer = null;
+				}
+				if (!this.webDavSettings || this.webDavPollTimer) {
+					return;
+				}
+				this.pullFromWebDav(true);
+				this.webDavPollTimer = setInterval(() => {
+					this.pullFromWebDav(false);
+				}, CONFIG.WEBDAV_SYNC_INTERVAL_MS);
 			}
 
 			// Data Storage
@@ -771,6 +1039,9 @@
 					localStorage.removeItem(key);
 				} else {
 					localStorage.setItem(key, json);
+				}
+				if (!this.isApplyingRemoteData) {
+					this.scheduleWebDavPush();
 				}
 			}
 			
@@ -849,6 +1120,14 @@
 				document.getElementById('nextWeek').addEventListener('click', () => {
 					this.currentDate.setDate(this.currentDate.getDate() + 7);
 					this.updateUI();
+				});
+
+				document.getElementById('editSettings').addEventListener('click', () => {
+					const settings = this.promptWebDavSettings(this.webDavSettings);
+					if (settings) {
+						this.saveWebDavSettings(settings);
+						this.initializeWebDavSync(true);
+					}
 				});
 				
 				document.getElementById('currentWeek').addEventListener('click', () => {
