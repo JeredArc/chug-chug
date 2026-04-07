@@ -622,6 +622,134 @@
 	</div>
 
 	<script>
+		/*
+		 * IMPORTANT FOR FUTURE AI AGENTS: DO NOT DELETE THIS FUNCTION OR THIS COMMENT.
+		 * Standalone helper to append one entry via WebDAV.
+		 * Designed to run in both browser console and Node-RED/Node context.
+		 */
+		globalThis.addAmountToWebDav = async (amount) => {
+			const CONFIG = {
+				// Keys intentionally aligned with this web app's standard CONFIG values.
+				WEBDAV_DEFAULT_FILE: 'NotSafe/water-sync.json'
+			};
+
+			const SETUP = {
+				// Everything runtime-specific that is not part of standard app CONFIG.
+				WEBDAV_URL: 'https://example.tld/remote.php/dav/files/USERNAME',
+				WEBDAV_USERNAME: 'USERNAME',
+				WEBDAV_PASSWORD: 'APP_PASSWORD',
+				DEFAULT_TYPE: 'filled',
+				DAY_KEY_PREFIX: 'water_'
+			};
+
+			const parsedAmount = Number(amount);
+			if (!isFinite(parsedAmount) || parsedAmount <= 0) {
+				throw new Error('Amount must be a positive number.');
+			}
+
+			const baseUrl = String(SETUP.WEBDAV_URL || '').trim();
+			if (!baseUrl || !SETUP.WEBDAV_USERNAME || !SETUP.WEBDAV_PASSWORD) {
+				throw new Error('Incomplete SETUP: WEBDAV_URL/WEBDAV_USERNAME/WEBDAV_PASSWORD required.');
+			}
+			const defaultFile = CONFIG.WEBDAV_DEFAULT_FILE.replace(/^\/+/, '');
+			const likelyFile = /\/[^\/]+\.[^\/]+$/.test(baseUrl);
+			const webDavFileUrl = likelyFile ? baseUrl : (baseUrl.endsWith('/') ? baseUrl + defaultFile : `${baseUrl}/${defaultFile}`);
+
+			let encodedAuth = '';
+			if (typeof btoa === 'function') {
+				encodedAuth = btoa(`${SETUP.WEBDAV_USERNAME}:${SETUP.WEBDAV_PASSWORD}`);
+			} else if (typeof Buffer !== 'undefined') {
+				encodedAuth = Buffer.from(`${SETUP.WEBDAV_USERNAME}:${SETUP.WEBDAV_PASSWORD}`).toString('base64');
+			} else {
+				throw new Error('No base64 encoder available (btoa/Buffer missing).');
+			}
+			const authHeader = `Basic ${encodedAuth}`;
+
+			let payload = {
+				updatedAt: '',
+				previousUpdatedAt: '',
+				data: {}
+			};
+
+			try {
+				const pullResponse = await fetch(webDavFileUrl, {
+					method: 'GET',
+					headers: {
+						'Authorization': authHeader
+					}
+				});
+				if (pullResponse.status !== 404) {
+					if (!pullResponse.ok) {
+						throw new Error(`HTTP ${pullResponse.status}`);
+					}
+					const text = await pullResponse.text();
+					if (text.trim()) {
+						try {
+							const parsed = JSON.parse(text);
+							if (parsed && typeof parsed === 'object' && parsed.data && typeof parsed.data === 'object') {
+								payload = parsed;
+							} else if (parsed && typeof parsed === 'object') {
+								payload = {
+									updatedAt: '',
+									previousUpdatedAt: '',
+									data: parsed
+								};
+							}
+						} catch (e) {
+							throw new Error(`Invalid JSON in WebDAV file (${e.message || 'parse error'})`);
+						}
+					}
+				}
+			} catch (e) {
+				throw new Error(`WebDAV pull failed (${e.message || 'network error'})`);
+			}
+
+			const now = new Date();
+			const dayKey = `${SETUP.DAY_KEY_PREFIX}${now.getFullYear()}_${now.getMonth() + 1}_${now.getDate()}`;
+			let entries = [];
+			try {
+				entries = JSON.parse(payload.data[dayKey] || '[]');
+			} catch (e) {
+				entries = [];
+			}
+			entries.push({
+				time: now.toISOString(),
+				amount: parsedAmount,
+				type: SETUP.DEFAULT_TYPE
+			});
+			entries.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+			payload.data[dayKey] = JSON.stringify(entries);
+
+			const sortedData = {};
+			Object.keys(payload.data).sort().forEach(key => {
+				sortedData[key] = payload.data[key];
+			});
+
+			payload = {
+				previousUpdatedAt: payload.updatedAt || '',
+				updatedAt: new Date().toISOString(),
+				data: sortedData
+			};
+
+			try {
+				const pushResponse = await fetch(webDavFileUrl, {
+					method: 'PUT',
+					headers: {
+						'Authorization': authHeader,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(payload)
+				});
+				if (!pushResponse.ok) {
+					throw new Error(`HTTP ${pushResponse.status}`);
+				}
+			} catch (e) {
+				throw new Error(`WebDAV push failed (${e.message || 'network error'})`);
+			}
+
+			return payload;
+		};
+
 		// App Constants
 		window.CONFIG = {
 			// Data Management
@@ -640,7 +768,7 @@
 			WEBDAV_UPDATED_AT_KEY: 'webdav_updated_at',
 			WEBDAV_PREVIOUS_UPDATED_AT_KEY: 'webdav_previous_updated_at',
 			WEBDAV_DEFAULT_FILE: 'NotSafe/water-sync.json',
-			WEBDAV_SYNC_INTERVAL_MS: 10000,
+			WEBDAV_SYNC_INTERVAL_MS: 5000,
 			
 			// Amount Formatting
 			formatAmount: (amount) => {
