@@ -854,6 +854,7 @@
 				this.selectedEntry = null;
 				this.currentAmountBeforeEdit = null;
 				this.recentSubmittedEntry = null;
+				this.recentSubmittedEntryTimeout = null;
 				this.webDavSettings = this.getWebDavSettings();
 				this.webDavPollTimer = null;
 				this.webDavPushTimer = null;
@@ -1487,6 +1488,9 @@
 					entryDiv.classList.add('selected');
 				} else if (this.isRecentSubmittedEntry(entry)) {
 					entryDiv.classList.add('recent');
+					requestAnimationFrame(() => {
+						entryDiv.classList.remove('recent');
+					});
 				}
 				
 				const timeRow = document.createElement('div');
@@ -1536,11 +1540,18 @@
 			}
 
 			markRecentSubmittedEntry(date, amount, type) {
+				if (this.recentSubmittedEntryTimeout) {
+					clearTimeout(this.recentSubmittedEntryTimeout);
+				}
 				this.recentSubmittedEntry = {
 					time: new Date(date).toISOString(),
 					amount: Number(amount),
 					type: type
 				};
+				this.recentSubmittedEntryTimeout = setTimeout(() => {
+					this.recentSubmittedEntry = null;
+					this.recentSubmittedEntryTimeout = null;
+				}, CONFIG.RECENT_ENTRY_FADE_MS);
 			}
 
 			isRecentSubmittedEntry(entry) {
@@ -1552,28 +1563,6 @@
 					entry.type === this.recentSubmittedEntry.type;
 			}
 
-			triggerRecentEntryFade() {
-				if (!this.recentSubmittedEntry) {
-					return;
-				}
-				const recentEntry = this.recentSubmittedEntry;
-				const recentElement = Array.from(document.querySelectorAll('.entry.recent')).find((entryEl) => {
-					return entryEl.dataset.entryTime === recentEntry.time &&
-						Number(entryEl.dataset.entryAmount) === recentEntry.amount &&
-						entryEl.dataset.entryType === recentEntry.type;
-				});
-				if (recentElement) {
-					requestAnimationFrame(() => {
-						recentElement.classList.remove('recent');
-					});
-				}
-				setTimeout(() => {
-					if (this.recentSubmittedEntry === recentEntry) {
-						this.recentSubmittedEntry = null;
-					}
-				}, CONFIG.RECENT_ENTRY_FADE_MS);
-			}
-			
 			updateAmountDisplay() {
 				const formattedFull = CONFIG.formatAmount(this.currentAmount);
 				const hasDecimal = formattedFull.slice(0, this.cursorIndex).includes('.');
@@ -1793,7 +1782,6 @@
 					this.updateAmountDisplay();
 					this.updateUI();
 				}
-				this.triggerRecentEntryFade();
 
 				this.showFloatingIcon(type === 'filled' ? '#icon-filled' : '#icon-drunk');
 			}
