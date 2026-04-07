@@ -160,8 +160,9 @@
 		}
 
 		.nav-button-settings .nav-button-settings-icon {
-			display: block;
-			transform: translateY(-1px);
+			width: 20px;
+			height: 20px;
+			transform: translateX(-0.5px);
 		}
 
 		.week-display {
@@ -527,6 +528,9 @@
 		<symbol id="icon-arrow-right" viewBox="0 0 24 24">
 			<path d="M8.59 7.41L10 6l6 6-6 6-1.41-1.41L13.17 12z"/>
 		</symbol>
+		<symbol id="icon-settings" viewBox="0 0 24 24">
+			<path d="M19.14,12.94C19.18,12.64 19.2,12.33 19.2,12C19.2,11.67 19.18,11.36 19.14,11.06L20.79,9.77C20.94,9.65 20.98,9.44 20.89,9.27L19.33,6.73C19.24,6.56 19.03,6.49 18.85,6.56L16.9,7.34C16.41,6.96 15.87,6.65 15.27,6.43L14.97,4.35C14.94,4.16 14.77,4 14.58,4H11.42C11.23,4 11.06,4.16 11.03,4.35L10.73,6.43C10.13,6.65 9.59,6.96 9.1,7.34L7.15,6.56C6.97,6.49 6.76,6.56 6.67,6.73L5.11,9.27C5.02,9.44 5.06,9.65 5.21,9.77L6.86,11.06C6.82,11.36 6.8,11.67 6.8,12C6.8,12.33 6.82,12.64 6.86,12.94L5.21,14.23C5.06,14.35 5.02,14.56 5.11,14.73L6.67,17.27C6.76,17.44 6.97,17.51 7.15,17.44L9.1,16.66C9.59,17.04 10.13,17.35 10.73,17.57L11.03,19.65C11.06,19.84 11.23,20 11.42,20H14.58C14.77,20 14.94,19.84 14.97,19.65L15.27,17.57C15.87,17.35 16.41,17.04 16.9,16.66L18.85,17.44C19.03,17.51 19.24,17.44 19.33,17.27L20.89,14.73C20.98,14.56 20.94,14.35 20.79,14.23L19.14,12.94ZM13,15.5C11.07,15.5 9.5,13.93 9.5,12C9.5,10.07 11.07,8.5 13,8.5C14.93,8.5 16.5,10.07 16.5,12C16.5,13.93 14.93,15.5 13,15.5Z"/>
+		</symbol>
 		<!-- Entry Type Icons -->
 		<symbol id="icon-filled" viewBox="0 0 24 24">
 			<path d="M10.137,13.594L10.137,6.008C10.137,3.066 12.531,0.672 15.476,0.672C18.422,0.672 20.812,3.066 20.812,6.008L20.812,8.398L18.707,8.398L18.707,6.008C18.707,4.227 17.258,2.777 15.477,2.777C13.695,2.777 12.242,4.227 12.242,6.008L12.242,13.594L10.137,13.594Z" style="fill-rule:nonzero;"/>
@@ -555,7 +559,7 @@
 				</div>
 				<button class="week-display" id="currentWeek"></button>
 				<div class="header-side header-side-right">
-					<button class="nav-button nav-button-settings" id="editSettings"><span class="nav-button-settings-icon">⚙</span></button>
+					<button class="nav-button nav-button-settings" id="editSettings"><svg class="nav-button-settings-icon" viewBox="0 0 24 24"><use href="#icon-settings"></use></svg></button>
 					<button class="nav-button" id="nextWeek" disabled><svg width="24" height="24"><use href="#icon-arrow-right"></use></svg></button>
 				</div>
 			</div>
@@ -630,6 +634,7 @@
 			RECENT_ENTRY_FADE_MS: 8000,
 			WEBDAV_SETTINGS_KEY: 'webdav_settings',
 			WEBDAV_UPDATED_AT_KEY: 'webdav_updated_at',
+			WEBDAV_PREVIOUS_UPDATED_AT_KEY: 'webdav_previous_updated_at',
 			WEBDAV_DEFAULT_FILE: 'NotSafe/water-sync.json',
 			WEBDAV_SYNC_INTERVAL_MS: 10000,
 			
@@ -861,12 +866,16 @@
 
 			getWaterDataSnapshot() {
 				const data = {};
+				const keys = [];
 				for (let i = 0; i < localStorage.length; i++) {
 					const key = localStorage.key(i);
-					if (key && key.startsWith('water_')) {
-						data[key] = localStorage.getItem(key);
+					if (key && key.startsWith('water_') && key !== 'water_last_amount') {
+						keys.push(key);
 					}
 				}
+				keys.sort().forEach(key => {
+					data[key] = localStorage.getItem(key);
+				});
 				return data;
 			}
 
@@ -874,7 +883,7 @@
 				const keysToRemove = [];
 				for (let i = 0; i < localStorage.length; i++) {
 					const key = localStorage.key(i);
-					if (key && key.startsWith('water_')) {
+					if (key && key.startsWith('water_') && key !== 'water_last_amount') {
 						keysToRemove.push(key);
 					}
 				}
@@ -894,6 +903,17 @@
 				}
 			}
 
+			// Currently not used by UI logic; kept for possible diagnostics/conflict tracing.
+			getLocalWebDavPreviousUpdatedAt() {
+				return localStorage.getItem(CONFIG.WEBDAV_PREVIOUS_UPDATED_AT_KEY) || '';
+			}
+
+			setLocalWebDavPreviousUpdatedAt(previousUpdatedAt) {
+				if (previousUpdatedAt) {
+					localStorage.setItem(CONFIG.WEBDAV_PREVIOUS_UPDATED_AT_KEY, previousUpdatedAt);
+				}
+			}
+
 			normalizeRemotePayload(payload) {
 				if (!payload || typeof payload !== 'object') {
 					return null;
@@ -903,6 +923,7 @@
 				}
 				return {
 					updatedAt: '',
+					previousUpdatedAt: '',
 					data: payload
 				};
 			}
@@ -959,7 +980,9 @@
 				if (!this.webDavSettings) {
 					return;
 				}
+				const currentUpdatedAt = this.getLocalWebDavUpdatedAt();
 				const payload = {
+					previousUpdatedAt: currentUpdatedAt,
 					updatedAt: new Date().toISOString(),
 					data: this.getWaterDataSnapshot()
 				};
@@ -973,6 +996,7 @@
 						body: JSON.stringify(payload)
 					});
 					if (response.ok) {
+						this.setLocalWebDavPreviousUpdatedAt(payload.previousUpdatedAt);
 						this.setLocalWebDavUpdatedAt(payload.updatedAt);
 					}
 				} catch (e) {
