@@ -164,6 +164,10 @@
 			height: 20px;
 			transform: translateX(-0.5px);
 		}
+		.nav-button-settings.has-errors {
+			color: #c62828;
+			border-color: #c62828;
+		}
 
 		.week-display {
 			position: absolute;
@@ -726,6 +730,7 @@
 				this.webDavPollTimer = null;
 				this.webDavPushTimer = null;
 				this.isApplyingRemoteData = false;
+				this.syncErrors = [];
 				this.entryDate = new Date();
 				this.entryDateIsSet = false;
 				this.currentAmount = this.getLastAmount();
@@ -928,6 +933,29 @@
 				};
 			}
 
+			addSyncError(message) {
+				const timestamp = new Date().toISOString();
+				this.syncErrors.push(`${timestamp}: ${message}`);
+				if (this.syncErrors.length > 30) {
+					this.syncErrors.shift();
+				}
+				this.updateSyncErrorIndicator();
+			}
+
+			consumeSyncErrors() {
+				const result = [...this.syncErrors];
+				this.syncErrors = [];
+				this.updateSyncErrorIndicator();
+				return result;
+			}
+
+			updateSyncErrorIndicator() {
+				const settingsButton = document.getElementById('editSettings');
+				if (settingsButton) {
+					settingsButton.classList.toggle('has-errors', this.syncErrors.length > 0);
+				}
+			}
+
 			async pullFromWebDav(createIfMissing = false) {
 				if (!this.webDavSettings) {
 					return;
@@ -946,6 +974,7 @@
 						return;
 					}
 					if (!response.ok) {
+						this.addSyncError(`WebDAV pull failed with HTTP ${response.status}`);
 						return;
 					}
 					const text = await response.text();
@@ -972,6 +1001,7 @@
 					this.isApplyingRemoteData = false;
 				} catch (e) {
 					console.error('WebDAV pull failed:', e);
+					this.addSyncError(`WebDAV pull failed (${e.message || 'network error'})`);
 					this.isApplyingRemoteData = false;
 				}
 			}
@@ -998,9 +1028,12 @@
 					if (response.ok) {
 						this.setLocalWebDavPreviousUpdatedAt(payload.previousUpdatedAt);
 						this.setLocalWebDavUpdatedAt(payload.updatedAt);
+					} else {
+						this.addSyncError(`WebDAV push failed with HTTP ${response.status}`);
 					}
 				} catch (e) {
 					console.error('WebDAV push failed:', e);
+					this.addSyncError(`WebDAV push failed (${e.message || 'network error'})`);
 				}
 			}
 
@@ -1147,12 +1180,18 @@
 				});
 
 				document.getElementById('editSettings').addEventListener('click', () => {
+					if (this.syncErrors.length) {
+						const errors = this.consumeSyncErrors();
+						alert(`Sync errors:\n\n${errors.join('\n')}`);
+						return;
+					}
 					const settings = this.promptWebDavSettings(this.webDavSettings);
 					if (settings) {
 						this.saveWebDavSettings(settings);
 						this.initializeWebDavSync(true);
 					}
 				});
+				this.updateSyncErrorIndicator();
 				
 				document.getElementById('currentWeek').addEventListener('click', () => {
 					this.currentDate = CONFIG.getDayDate(new Date());
