@@ -168,6 +168,15 @@
 			color: #c62828;
 			border-color: #c62828;
 		}
+		.nav-button-settings.has-success {
+			color: #2e7d32;
+			border-color: #2e7d32;
+			transition: color 1200ms ease-out, border-color 1200ms ease-out;
+		}
+		.nav-button-sync-debug {
+			font-size: 16px;
+			font-weight: bold;
+		}
 
 		.week-display {
 			position: absolute;
@@ -564,6 +573,7 @@
 				<button class="week-display" id="currentWeek"></button>
 				<div class="header-side header-side-right">
 					<button class="nav-button nav-button-settings" id="editSettings"><svg class="nav-button-settings-icon" viewBox="0 0 24 24"><use href="#icon-settings"></use></svg></button>
+					<button class="nav-button nav-button-sync-debug" id="syncDebug">i</button>
 					<button class="nav-button" id="nextWeek" disabled><svg width="24" height="24"><use href="#icon-arrow-right"></use></svg></button>
 				</div>
 			</div>
@@ -858,8 +868,36 @@
 				this.webDavSettings = this.getWebDavSettings();
 				this.webDavPollTimer = null;
 				this.webDavPushTimer = null;
+				this.webDavPullInFlight = false;
+				this.webDavPullPending = false;
+				this.webDavLifecycleListenersInstalled = false;
+				this.globalErrorListenersInstalled = false;
+				this.syncSuccessIndicatorTimeout = null;
 				this.isApplyingRemoteData = false;
 				this.syncErrors = [];
+				this.globalErrors = [];
+				this.syncDebug = {
+					pullAttempts: 0,
+					pullSuccesses: 0,
+					pullApplies: 0,
+					pullSkipsSameUpdatedAt: 0,
+					pullSkipsWhileEditing: 0,
+					pullSkipsInvalidPayload: 0,
+					pullSkippedInFlight: 0,
+					pullHttp404: 0,
+					pullEmptyBody: 0,
+					pushAttempts: 0,
+					pushSuccesses: 0,
+					lastPullStartedAt: '',
+					lastPullFinishedAt: '',
+					lastPullAppliedAt: '',
+					lastPullRemoteUpdatedAt: '',
+					lastPullLocalUpdatedAtBeforeCheck: '',
+					lastApplyReason: '',
+					lastError: '',
+					recentEvents: []
+				};
+				this.installGlobalErrorListeners();
 				this.entryDate = new Date();
 				this.entryDateIsSet = false;
 				this.currentAmount = this.getLastAmount();
@@ -1085,38 +1123,204 @@
 				}
 			}
 
-			async pullFromWebDav(createIfMissing = false) {
-				if (!this.webDavSettings) {
+			addSyncDebugEvent(message) {
+				const timestamp = new Date().toISOString();
+				this.syncDebug.recentEvents.push(`${timestamp} ${message}`);
+				if (this.syncDebug.recentEvents.length > 12) {
+					this.syncDebug.recentEvents.shift();
+				}
+			}
+
+			setSyncDebugError(message) {
+				this.syncDebug.lastError = message;
+				this.addSyncDebugEvent(`ERROR: ${message}`);
+			}
+
+			flashSyncSuccessIndicator() {
+				const settingsButton = document.getElementById('editSettings');
+				if (!settingsButton || this.syncErrors.length > 0) {
 					return;
 				}
+				settingsButton.classList.add('has-success');
+				if (this.syncSuccessIndicatorTimeout) {
+					clearTimeout(this.syncSuccessIndicatorTimeout);
+				}
+				this.syncSuccessIndicatorTimeout = setTimeout(() => {
+					settingsButton.classList.remove('has-success');
+					this.syncSuccessIndicatorTimeout = null;
+				}, 1200);
+			}
+
+			showSyncDebugInfo() {
+				const debug = this.syncDebug;
+				const lines = [
+					'Sync debug info',
+					`pull attempts: ${debug.pullAttempts}`,
+					`pull successes: ${debug.pullSuccesses}`,
+					`pull applies: ${debug.pullApplies}`,
+					`pull skipped (same updatedAt): ${debug.pullSkipsSameUpdatedAt}`,
+					`pull skipped (editing): ${debug.pullSkipsWhileEditing}`,
+					`pull skipped (invalid payload): ${debug.pullSkipsInvalidPayload}`,
+					`pull skipped (in flight): ${debug.pullSkippedInFlight}`,
+					`pull 404: ${debug.pullHttp404}`,
+					`pull empty body: ${debug.pullEmptyBody}`,
+					`push attempts: ${debug.pushAttempts}`,
+					`push successes: ${debug.pushSuccesses}`,
+					`last pull started: ${debug.lastPullStartedAt || '-'}`,
+					`last pull finished: ${debug.lastPullFinishedAt || '-'}`,
+					`last pull applied: ${debug.lastPullAppliedAt || '-'}`,
+					`last remote updatedAt: ${debug.lastPullRemoteUpdatedAt || '-'}`,
+					`last local updatedAt before check: ${debug.lastPullLocalUpdatedAtBeforeCheck || '-'}`,
+					`last apply reason: ${debug.lastApplyReason || '-'}`,
+					`last error: ${debug.lastError || '-'}`,
+					`global errors captured: ${this.globalErrors.length}`,
+					'',
+					'recent events:',
+					...(debug.recentEvents.length ? debug.recentEvents : ['-']),
+					'',
+					'recent global errors:',
+					...(this.globalErrors.length ? this.globalErrors : ['-'])
+				];
+				alert(lines.join('\n'));
+			}
+
+			formatErrorValue(value) {
+				if (value === null || value === undefined) {
+					return String(value);
+				}
+				if (value instanceof Error) {
+					return `${value.name}: ${value.message}`;
+				}
+				if (typeof value === 'string') {
+					return value;
+				}
 				try {
-					const response = await fetch(this.getWebDavFileUrl(), {
+					return JSON.stringify(value);
+				} catch (e) {
+					return String(value);
+				}
+			}
+
+			addGlobalError(source, detail) {
+				const timestamp = new Date().toISOString();
+				const message = `${timestamp} ${source}: ${detail}`;
+				this.globalErrors.push(message);
+				if (this.globalErrors.length > 15) {
+					this.globalErrors.shift();
+				}
+				this.setSyncDebugError(`${source}: ${detail}`);
+			}
+
+			installGlobalErrorListeners() {
+				if (this.globalErrorListenersInstalled) {
+					return;
+				}
+				window.addEventListener('error', (event) => {
+					const detail = event?.error
+						? this.formatErrorValue(event.error)
+						: `${event?.message || 'unknown'} @ ${event?.filename || '-'}:${event?.lineno || '-'}:${event?.colno || '-'}`;
+					this.addGlobalError('window.onerror', detail);
+				});
+				window.addEventListener('unhandledrejection', (event) => {
+					const detail = this.formatErrorValue(event?.reason);
+					this.addGlobalError('unhandledrejection', detail);
+				});
+				this.globalErrorListenersInstalled = true;
+			}
+
+			installLifecycleSyncListeners() {
+				if (this.webDavLifecycleListenersInstalled) {
+					return;
+				}
+				const triggerPull = (reason) => {
+					this.addSyncDebugEvent(`lifecycle pull trigger (${reason})`);
+					this.pullFromWebDav(false);
+				};
+				document.addEventListener('visibilitychange', () => {
+					if (document.visibilityState === 'visible') {
+						triggerPull('visibilitychange');
+					}
+				});
+				window.addEventListener('pageshow', () => {
+					triggerPull('pageshow');
+				});
+				window.addEventListener('focus', () => {
+					triggerPull('focus');
+				});
+				window.addEventListener('online', () => {
+					triggerPull('online');
+				});
+				this.webDavLifecycleListenersInstalled = true;
+			}
+
+			async pullFromWebDav(createIfMissing = false) {
+				if (!this.webDavSettings) {
+					this.addSyncDebugEvent('pull skipped (missing settings)');
+					return;
+				}
+				if (this.webDavPullInFlight) {
+					this.webDavPullPending = true;
+					this.syncDebug.pullSkippedInFlight++;
+					this.addSyncDebugEvent('pull skipped (in flight), marked pending');
+					return;
+				}
+				this.webDavPullInFlight = true;
+				this.syncDebug.pullAttempts++;
+				this.syncDebug.lastPullStartedAt = new Date().toISOString();
+				this.addSyncDebugEvent(`pull start${createIfMissing ? ' (createIfMissing)' : ''}`);
+				try {
+					const fileUrl = this.getWebDavFileUrl();
+					const urlWithCacheBypass = `${fileUrl}${fileUrl.includes('?') ? '&' : '?'}_ts=${Date.now()}`;
+					const response = await fetch(urlWithCacheBypass, {
 						method: 'GET',
+						cache: 'no-store',
 						headers: {
-							'Authorization': this.getWebDavAuthHeader()
+							'Authorization': this.getWebDavAuthHeader(),
+							'Cache-Control': 'no-cache',
+							'Pragma': 'no-cache'
 						}
 					});
 					if (response.status === 404) {
+						this.syncDebug.pullHttp404++;
+						this.addSyncDebugEvent('pull result 404');
 						if (createIfMissing) {
 							this.scheduleWebDavPush(true);
+							this.addSyncDebugEvent('scheduled immediate push because file missing');
 						}
 						return;
 					}
 					if (!response.ok) {
 						this.addSyncError(`WebDAV pull failed with HTTP ${response.status}`);
+						this.setSyncDebugError(`pull HTTP ${response.status}`);
 						return;
 					}
+					this.syncDebug.pullSuccesses++;
+					this.flashSyncSuccessIndicator();
 					const text = await response.text();
 					if (!text.trim()) {
+						this.syncDebug.pullEmptyBody++;
+						this.addSyncDebugEvent('pull success with empty body');
 						return;
 					}
 					const parsed = JSON.parse(text);
 					const payload = this.normalizeRemotePayload(parsed);
-					if (!payload || !payload.data || this.selectedEntry) {
+					if (!payload || !payload.data) {
+						this.syncDebug.pullSkipsInvalidPayload++;
+						this.addSyncDebugEvent('pull skipped (invalid payload)');
+						return;
+					}
+					if (this.selectedEntry) {
+						this.syncDebug.pullSkipsWhileEditing++;
+						this.addSyncDebugEvent('pull skipped (currently editing)');
 						return;
 					}
 					const remoteUpdatedAt = payload.updatedAt || '';
-					if (remoteUpdatedAt && remoteUpdatedAt === this.getLocalWebDavUpdatedAt()) {
+					const localUpdatedAt = this.getLocalWebDavUpdatedAt();
+					this.syncDebug.lastPullRemoteUpdatedAt = remoteUpdatedAt;
+					this.syncDebug.lastPullLocalUpdatedAtBeforeCheck = localUpdatedAt;
+					if (remoteUpdatedAt && remoteUpdatedAt === localUpdatedAt) {
+						this.syncDebug.pullSkipsSameUpdatedAt++;
+						this.addSyncDebugEvent(`pull skipped (same updatedAt ${remoteUpdatedAt})`);
 						return;
 					}
 					this.isApplyingRemoteData = true;
@@ -1127,11 +1331,24 @@
 					this.updateDateTimeInput();
 					this.updateAmountDisplay();
 					this.updateUI();
+					this.syncDebug.pullApplies++;
+					this.syncDebug.lastPullAppliedAt = new Date().toISOString();
+					this.syncDebug.lastApplyReason = remoteUpdatedAt ? 'remote updatedAt differs' : 'remote has no updatedAt';
+					this.addSyncDebugEvent(`pull applied (${this.syncDebug.lastApplyReason})`);
 					this.isApplyingRemoteData = false;
 				} catch (e) {
 					console.error('WebDAV pull failed:', e);
 					this.addSyncError(`WebDAV pull failed (${e.message || 'network error'})`);
+					this.setSyncDebugError(`pull failed (${e.message || 'network error'})`);
 					this.isApplyingRemoteData = false;
+				} finally {
+					this.syncDebug.lastPullFinishedAt = new Date().toISOString();
+					this.webDavPullInFlight = false;
+					if (this.webDavPullPending) {
+						this.webDavPullPending = false;
+						this.addSyncDebugEvent('running pending pull now');
+						this.pullFromWebDav(false);
+					}
 				}
 			}
 
@@ -1139,6 +1356,7 @@
 				if (!this.webDavSettings) {
 					return;
 				}
+				this.syncDebug.pushAttempts++;
 				const currentUpdatedAt = this.getLocalWebDavUpdatedAt();
 				const payload = {
 					previousUpdatedAt: currentUpdatedAt,
@@ -1155,14 +1373,18 @@
 						body: JSON.stringify(payload)
 					});
 					if (response.ok) {
+						this.syncDebug.pushSuccesses++;
+						this.addSyncDebugEvent(`push success (${payload.updatedAt})`);
 						this.setLocalWebDavPreviousUpdatedAt(payload.previousUpdatedAt);
 						this.setLocalWebDavUpdatedAt(payload.updatedAt);
 					} else {
 						this.addSyncError(`WebDAV push failed with HTTP ${response.status}`);
+						this.setSyncDebugError(`push HTTP ${response.status}`);
 					}
 				} catch (e) {
 					console.error('WebDAV push failed:', e);
 					this.addSyncError(`WebDAV push failed (${e.message || 'network error'})`);
+					this.setSyncDebugError(`push failed (${e.message || 'network error'})`);
 				}
 			}
 
@@ -1187,6 +1409,7 @@
 				if (!this.webDavSettings || this.webDavPollTimer) {
 					return;
 				}
+				this.installLifecycleSyncListeners();
 				this.pullFromWebDav(true);
 				this.webDavPollTimer = setInterval(() => {
 					this.pullFromWebDav(false);
@@ -1319,6 +1542,9 @@
 						this.saveWebDavSettings(settings);
 						this.initializeWebDavSync(true);
 					}
+				});
+				document.getElementById('syncDebug').addEventListener('click', () => {
+					this.showSyncDebugInfo();
 				});
 				this.updateSyncErrorIndicator();
 				
